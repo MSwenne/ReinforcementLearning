@@ -24,6 +24,11 @@ class HexBoard:
       self.board[coordinates] = color
       if self.check_win(HexBoard.RED) or self.check_win(HexBoard.BLUE):
         self.game_over = True
+  def clear(self, coordinates):
+    if not (self.board[coordinates] == HexBoard.EMPTY):
+      self.board[coordinates] = HexBoard.EMPTY
+      if not (self.check_win(HexBoard.RED) or self.check_win(HexBoard.BLUE)):
+        self.game_over = False
   def get_opposite_color(self, current_color):
     if current_color == HexBoard.BLUE:
       return HexBoard.RED

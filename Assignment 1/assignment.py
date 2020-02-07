@@ -1,6 +1,7 @@
 import numpy as np
 from hex_skeleton import HexBoard
-np.seed(42)
+
+depth = 5
 
 def main():
     print("Hex game: how big is the board?")
@@ -28,12 +29,13 @@ def main():
                 print("Invalid coordinates!")
             else:
                 if(not makeMove(board, player, (x,y))):
-                    print("Place already taken! ", end="")
+                    print("Place already taken! ")
                 else:
                     valid = True
         if(not board.is_game_over() and not board.fullBoard()):
             print("enemy's turn:")
-            makeRandomMove(board, bot)
+            # makeRandomMove(board, bot)
+            makeAlphaBetaMove(board, bot)
         board.print()
     if(board.check_win(player)):
         print("You win!")
@@ -61,6 +63,7 @@ def makeMove(board, color, coordinates):
     if(board.is_empty(coordinates)):
         board.place(coordinates, color)
         return True
+    print("Cannot place, not empty!")
     return False
 
 def makeRandomMove(board, color):
@@ -71,9 +74,20 @@ def makeRandomMove(board, color):
         y = np.random.randint(0,board.size)
     return True
 
+def makeAlphaBetaMove(board, color):
+    enemy = board.get_opposite_color(color)
+    best_value = -np.inf
+    for move in getMoveList(board, color):
+        makeMove(board, color, move)
+        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, False)
+        unMakeMove(board, move)
+        if(value > best_value):
+            best_move = move
+    makeMove(board, color, best_move)
+
 def unMakeMove(board, coordinates):
     if(not board.is_empty(coordinates)):
-        board.place(coordinates, HexBoard.EMPTY)
+        board.clear(coordinates)
         return True
     else:
         print("Cannot undo, place is empty!")
@@ -97,16 +111,15 @@ def alpha_beta(board, depth, alpha, beta, color, maximize):
             alpha = max(alpha, value)
             if (alpha >= beta):
                 break
-        return value
     else:
         value = np.inf
         for move in getMoveList(board, color):
             makeMove(board, color, move)
-            value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, False))
+            value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, True))
             unMakeMove(board, move)
-            beta = beta(beta, value)
+            beta = min(beta, value)
             if (alpha >= beta):
                 break
-        return value
+    return value
 
 main()
