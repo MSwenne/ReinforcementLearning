@@ -1,7 +1,7 @@
 import numpy as np
 from hex_skeleton import HexBoard
-
-depth = 5
+import heapq
+depth = 3
 
 def main():
     print("Hex game: how big is the board?")
@@ -32,6 +32,11 @@ def main():
                     print("Place already taken! ")
                 else:
                     valid = True
+            if player == HexBoard.BLUE:
+                root = [(0,i) for i in range(board.size)]
+            else:
+                root = [(i,0) for i in range(board.size)]
+            print(dijkstra(board, root, player))
         if(not board.is_game_over() and not board.fullBoard()):
             print("enemy's turn:")
             # makeRandomMove(board, bot)
@@ -121,5 +126,51 @@ def alpha_beta(board, depth, alpha, beta, color, maximize):
             if (alpha >= beta):
                 break
     return value
+
+def dijkstra(board, root, color):
+    cpy = board
+    Q = []
+    dist = {}
+    visited = []
+    prev = {}
+    for x in range(board.size):
+        for y in range(board.size):
+            if not (board.get_color((x,y)) == board.get_opposite_color(color)):
+                if (x,y) in root:
+                    if board.get_color((x,y)) == color: 
+                        length = 0
+                    else:
+                        length = 1
+                else:
+                    length = np.inf
+                dist[x,y] = length
+                heapq.heappush(Q, (length,(x,y)))
+    while not (len(Q) == 0): 
+        u = heapq.heappop(Q)
+        if u in visited:
+            continue
+        print(u)
+        visited.append(u)
+        for v in board.get_neighbors(u[1]):
+            print("\t",v)
+            length = dijkstra_Length(board, u[1], v, color)
+            alt = dist[u[1]] + length
+            if board.border(color, v):
+                # TODO add to result, get min(result) = shortest path to border
+            print("\t",alt,dist[v])
+            if alt < dist[v]:
+                print("\timprove")
+                dist[v] = alt
+                prev[v] = u[1]
+                heapq.heappush(Q,(alt,v))
+
+
+def dijkstra_Length(board, coord1, coord2, color):
+    if board.get_color(coord1) == color:
+        if board.get_color(coord2) == color:
+            return 0
+    elif board.get_color(coord2) == HexBoard.EMPTY:
+            return 2
+    return 1
 
 main()
