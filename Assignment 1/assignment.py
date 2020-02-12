@@ -5,17 +5,19 @@ depth = 3
 
 def main():
     print("Hex game: how big is the board?")
-    size = int(input())
-    while(not (2 < size and size < 10 )):
+    size = input()
+    while(size == '' or not(2 < int(size) and int(size) < 10 )):
         print("Invalid size!")
-        size = int(input())
+        size = input()
+    size = int(size)
     print("(r)ed vs. (b)lue")
     print("blue goes from left to right, red goes from top to bottom.")
     print("which color will you be? (red=0, blue=1)")
-    color = int(input())
-    while(color != 0 and color != 1):
+    color = input()
+    while(color == '' or (int(color) != 0 and int(color) != 1)):
         print("Invalid color!")
-        color = int(input())
+        color = input()
+    color = int(color)
     board = HexBoard(size)
     player = HexBoard.BLUE if color else HexBoard.RED
     bot = HexBoard.RED if color else HexBoard.BLUE
@@ -46,10 +48,18 @@ def main():
 
 def get_coordinates():
     print("x = ",end="")
-    x = int(input())
+    x = input()
+    while x == '':
+        print("invalid x-coordinate!")
+        print("x = ",end="")
+        x = input()
     print("y = ",end="")
-    y = int(input())
-    return x, y
+    y = input()
+    while y == '':
+        print("invalid y-coordinate!")
+        print("y = ",end="")
+        y = input()
+    return int(x), int(y)
 
 def getMoveList(board, color):
     moves = []
@@ -80,9 +90,12 @@ def makeAlphaBetaMove(board, color):
     for move in getMoveList(board, color):
         makeMove(board, color, move)
         value = alpha_beta(board, depth, -np.inf, np.inf, enemy, False)
+        board.print()
+        print(value)
         unMakeMove(board, move)
         if(value > best_value):
             best_move = move
+            best_value = value
     makeMove(board, color, best_move)
 
 def unMakeMove(board, coordinates):
@@ -94,9 +107,12 @@ def unMakeMove(board, coordinates):
         return False
 
 def alpha_beta(board, depth, alpha, beta, color, maximize):
+    # board.print()
     enemy = board.get_opposite_color(color)
-    if (depth == 0 or board.is_game_over()):
+    if depth == 0:
         return dijkstra(board,board.get_start_border(enemy),enemy)
+    if board.is_game_over():
+        return 0
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
