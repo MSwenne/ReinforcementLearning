@@ -96,7 +96,7 @@ def unMakeMove(board, coordinates):
 def alpha_beta(board, depth, alpha, beta, color, maximize):
     enemy = board.get_opposite_color(color)
     if (depth == 0 or board.is_game_over()):
-        return dijkstra(board,board.get_start_border(color),color)
+        return dijkstra(board,board.get_start_border(enemy),enemy)
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
@@ -140,16 +140,16 @@ def dijkstra(board, root, color):
             continue
         visited.append(u)
         for v in board.get_neighbors(u[1]):
-            length = dijkstra_Length(board, u[1], v, color)
-            alt = dist[u[1]] + length
-            print(dist)
-            if alt < dist[v]:
-                if board.border(color, v):
-                    if board.is_empty(v):
-                        alt = alt + 1
-                    heapq.heappush(result, (alt,v))
-                dist[v] = alt
-                heapq.heappush(Q,(alt,v))
+            if not (board.get_color(v) == board.get_opposite_color(color)):
+                length = dijkstra_Length(board, u[1], v, color)
+                alt = dist[u[1]] + length
+                if alt < dist[v]:
+                    if board.border(color, v):
+                        if board.is_empty(v):
+                            alt = alt + 1
+                        heapq.heappush(result, (alt,v))
+                    dist[v] = alt
+                    heapq.heappush(Q,(alt,v))
     return (heapq.heappop(result)[0])/2
 
 def dijkstra_Length(board, coord1, coord2, color):
