@@ -46,6 +46,11 @@ class HexBoard:
   def border(self, color, move):
     (nx, ny) = move
     return (color == HexBoard.BLUE and nx == self.size-1) or (color == HexBoard.RED and ny == self.size-1)
+  def get_start_border(self, color):
+    if color == HexBoard.BLUE:
+      return [(0,i) for i in range(self.size)]
+    else:
+      return [(i,0) for i in range(self.size)]
   def traverse(self, color, move, visited):
     if not self.is_color(move, color) or (move in visited and visited[move]): return False
     if self.border(color, move): return True
