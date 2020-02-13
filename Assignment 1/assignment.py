@@ -86,14 +86,17 @@ def makeRandomMove(board, color):
 
 def makeAlphaBetaMove(board, color):
     enemy = board.get_opposite_color(color)
-    best_value = -np.inf
+    best_value = np.inf
+    best_move = 0
     for move in getMoveList(board, color):
         makeMove(board, color, move)
-        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, False)
+        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True)
         unMakeMove(board, move)
-        if(value > best_value):
+        if(value < best_value):
             best_move = move
             best_value = value
+    if best_move == 0:
+        best_move = move
     makeMove(board, color, best_move)
 
 def unMakeMove(board, coordinates):
@@ -107,9 +110,10 @@ def unMakeMove(board, coordinates):
 def alpha_beta(board, depth, alpha, beta, color, maximize):
     enemy = board.get_opposite_color(color)
     if depth == 0:
-        return dijkstra(board,board.get_start_border(enemy),enemy)
-    if board.is_game_over():
-        return 0
+        if maximize:
+            return dijkstra(board,board.get_start_border(enemy),enemy)
+        else:
+            return dijkstra(board,board.get_start_border(color),color)
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
@@ -163,7 +167,10 @@ def dijkstra(board, root, color):
                         heapq.heappush(result, (alt,v))
                     dist[v] = alt
                     heapq.heappush(Q,(alt,v))
-    return (heapq.heappop(result)[0])/2
+    if len(result) != 0:
+        return (heapq.heappop(result)[0])/2
+    else:
+        return np.inf
 
 def dijkstra_Length(board, coord1, coord2, color):
     if board.get_color(coord1) == color:
