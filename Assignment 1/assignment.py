@@ -1,7 +1,7 @@
 import numpy as np
 from hex_skeleton import HexBoard
 import heapq
-depth = 3
+depth = 1
 
 def main():
     print("Hex game: how big is the board?")
@@ -90,8 +90,6 @@ def makeAlphaBetaMove(board, color):
     for move in getMoveList(board, color):
         makeMove(board, color, move)
         value = alpha_beta(board, depth, -np.inf, np.inf, enemy, False)
-        board.print()
-        print(value)
         unMakeMove(board, move)
         if(value > best_value):
             best_move = move
@@ -107,7 +105,6 @@ def unMakeMove(board, coordinates):
         return False
 
 def alpha_beta(board, depth, alpha, beta, color, maximize):
-    # board.print()
     enemy = board.get_opposite_color(color)
     if depth == 0:
         return dijkstra(board,board.get_start_border(enemy),enemy)
