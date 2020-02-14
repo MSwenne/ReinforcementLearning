@@ -1,7 +1,8 @@
-import numpy as np
+from trueskill import Rating, quality_1vs1, rate_1vs1
 from hex_skeleton import HexBoard
+import numpy as np
+import random
 import heapq
-depth = 1
 
 def main():
     print("Hex game: how big is the board?")
@@ -25,7 +26,7 @@ def main():
     while(not board.is_game_over()):
         print("make a move...")
         valid = False
-        makeAlphaBetaMove(board, player)
+        makeAlphaBetaMove(board, player, 3, True)
 
         # while(not valid):
         #     x, y = get_coordinates()
@@ -42,7 +43,7 @@ def main():
         else:
             print("enemy's turn:")
             # makeRandomMove(board, bot)
-            makeAlphaBetaMove(board, bot)
+            makeAlphaBetaMove(board, bot, 3, True)
         board.print()
     if(board.check_win(player)):
         print("You win!")
@@ -87,13 +88,13 @@ def makeRandomMove(board, color):
         y = np.random.randint(0,board.size)
     return True
 
-def makeAlphaBetaMove(board, color):
+def makeAlphaBetaMove(board, color, depth, heuristic):
     enemy = board.get_opposite_color(color)
     best_value = np.inf
     best_move = 0
     for move in getMoveList(board, color):
         makeMove(board, color, move)
-        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True)
+        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
         unMakeMove(board, move)
         if(value < best_value):
             best_move = move
@@ -110,20 +111,29 @@ def unMakeMove(board, coordinates):
         print("Cannot undo, place is empty!")
         return False
 
-def alpha_beta(board, depth, alpha, beta, color, maximize):
+def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
     enemy = board.get_opposite_color(color)
     val1 = dijkstra(board,board.get_start_border(enemy),enemy)
     val2 = dijkstra(board,board.get_start_border(color),color)
-    if not all([val1, val2, depth]):
-        if maximize:
-            return val1 - val2
+    if heuristic:
+        if not all([val1, val2, depth]):
+            if maximize:
+                return val1 - val2
+            else:
+                return val2 - val1
+    else:
+        if val1 == 0:
+            return 0
+        elif val2 == 0:
+            return 1
         else:
-            return val2 - val1
+            return random.random()
+
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
             makeMove(board, color, move)
-            value = max(value, alpha_beta(board, depth-1, alpha, beta, enemy, False))
+            value = max(value, alpha_beta(board, depth-1, alpha, beta, enemy, False, heuristic))
             unMakeMove(board, move)
             alpha = max(alpha, value)
             if (alpha >= beta):
@@ -132,7 +142,7 @@ def alpha_beta(board, depth, alpha, beta, color, maximize):
         value = np.inf
         for move in getMoveList(board, color):
             makeMove(board, color, move)
-            value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, True))
+            value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, True, heuristic))
             unMakeMove(board, move)
             beta = min(beta, value)
             if (alpha >= beta):
@@ -187,25 +197,43 @@ def dijkstra_Length(board, coord1, coord2, color):
 
 
 def test_true_skill():
+    bots = 3
+    rounds = 5
     size = 3
     print("board size: ", size)
-    bots = [HexBoard.RED, HexBoard.BLUE]
+    color = [HexBoard.RED, HexBoard.BLUE]
     depths = [[3, 3], [3, 4], [3, 4]]
     heuristics = [[False, True], [False, True], [True, True]]
-    bot1turn = 1
-
-    board = HexBoard(size)
-    for i in range(len(depths)):
-        depth = depths[i]
-        heuristics = heuristics[i]
-    while(not board.is_game_over()):
-        makeAlphaBetaMove(board, bots[bot1turn])
-        bot1turn = int(not bot1turn)
-        board.print()
-    if(board.check_win(bots[0])):
-        print("Bot1 wins!")
-    else:
-        print("Bot2 wins!")
-
-
-main()
+    turn = 1
+    r1 = Rating()
+    r2 = Rating()
+    r3 = Rating()
+    print(r1, r2, r3)
+    for round in range(rounds):
+        print("round:", round+1)
+        for i in range(bots):
+            board = HexBoard(size)
+            depth = depths[i]
+            heuristic = heuristics[i]
+            while(not board.is_game_over()):
+                makeAlphaBetaMove(board, color[turn], depth[turn], heuristic[turn])
+                turn = int(not turn)
+                # board.print()
+            if board.check_win(color[0]):
+                if i == 0:
+                    r1, r2 = rate_1vs1(r1, r2)
+                if i == 1:
+                    r1, r3 = rate_1vs1(r1, r3)
+                if i == 2:
+                    r2, r3 = rate_1vs1(r2, r3)
+            else:
+                if i == 0:
+                    r1, r2 = rate_1vs1(r2, r1)
+                if i == 1:
+                    r1, r3 = rate_1vs1(r3, r1)
+                if i == 2:
+                    r2, r3 = rate_1vs1(r3, r2)
+            print(r1, r2, r3)
+            del board
+test_true_skill()
+# main()
