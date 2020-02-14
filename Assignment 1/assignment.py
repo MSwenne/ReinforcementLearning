@@ -22,29 +22,32 @@ def main():
     player = HexBoard.BLUE if color else HexBoard.RED
     bot = HexBoard.RED if color else HexBoard.BLUE
 
-    while(not board.is_game_over() and not board.fullBoard()):
+    while(not board.is_game_over()):
         print("make a move...")
         valid = False
-        while(not valid):
-            x, y = get_coordinates()
-            if(not (0 <= x and x < size and 0 <= y and y < size)):
-                print("Invalid coordinates!")
-            else:
-                if(not makeMove(board, player, (x,y))):
-                    print("Place already taken! ")
-                else:
-                    valid = True
-        if(not board.is_game_over() and not board.fullBoard()):
+        makeAlphaBetaMove(board, player)
+
+        # while(not valid):
+        #     x, y = get_coordinates()
+        #     if(not (0 <= x and x < size and 0 <= y and y < size)):
+        #         print("Invalid coordinates!")
+        #     else:
+        #         if(not makeMove(board, player, (x,y))):
+        #             print("Place already taken! ")
+        #         else:
+        #             valid = True
+        board.print()
+        if(board.is_game_over()):
+            print("You win!")
+        else:
             print("enemy's turn:")
             # makeRandomMove(board, bot)
             makeAlphaBetaMove(board, bot)
         board.print()
     if(board.check_win(player)):
         print("You win!")
-    elif(board.check_win(bot)):
-        print("You lose!")
     else:
-        print("It's a draw!")
+        print("You lose!")
 
 def get_coordinates():
     print("x = ",end="")
@@ -109,11 +112,13 @@ def unMakeMove(board, coordinates):
 
 def alpha_beta(board, depth, alpha, beta, color, maximize):
     enemy = board.get_opposite_color(color)
-    if depth == 0:
+    val1 = dijkstra(board,board.get_start_border(enemy),enemy)
+    val2 = dijkstra(board,board.get_start_border(color),color)
+    if not all([val1, val2, depth]):
         if maximize:
-            return dijkstra(board,board.get_start_border(enemy),enemy)
+            return val1 - val2
         else:
-            return dijkstra(board,board.get_start_border(color),color)
+            return val2 - val1
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
@@ -179,5 +184,32 @@ def dijkstra_Length(board, coord1, coord2, color):
     elif board.get_color(coord2) == HexBoard.EMPTY:
             return 2
     return 1
+
+
+def test_true_skill():
+    size = 3
+    random = True
+    print("board size: ", size)
+    bot1 = HexBoard.RED
+    bot2 = HexBoard.BLUE
+
+    while(not board.is_game_over() and not board.fullBoard()):
+        valid = False
+        while(not valid):
+            x, y = get_coordinates()
+            if(0 <= x and x < size and 0 <= y and y < size):
+                if(makeMove(board, player, (x,y))):
+
+                    valid = True
+        if(not board.is_game_over() and not board.fullBoard()):
+            print("enemy's turn:")
+            if random:
+                makeRandomMove(board, bot)
+            else:
+                makeAlphaBetaMove(board, bot)
+        board.print()
+    if(board.check_win(player)):
+        print("You win!")
+    elif(board.check_win(bot)):
 
 main()

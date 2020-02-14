@@ -86,11 +86,3 @@ class HexBoard:
                     print("- ",end="")
         print("|")
     print("   -----------------------")
-
-
-  def fullBoard(self):
-    for x in range(self.size):
-      for y in range(self.size):
-        if self.is_empty((x,y)):
-          return False
-    return True
