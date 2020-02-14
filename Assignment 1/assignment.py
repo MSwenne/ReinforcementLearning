@@ -188,28 +188,24 @@ def dijkstra_Length(board, coord1, coord2, color):
 
 def test_true_skill():
     size = 3
-    random = True
     print("board size: ", size)
-    bot1 = HexBoard.RED
-    bot2 = HexBoard.BLUE
+    bots = [HexBoard.RED, HexBoard.BLUE]
+    depths = [[3, 3], [3, 4], [3, 4]]
+    heuristics = [[False, True], [False, True], [True, True]]
+    bot1turn = 1
 
-    while(not board.is_game_over() and not board.fullBoard()):
-        valid = False
-        while(not valid):
-            x, y = get_coordinates()
-            if(0 <= x and x < size and 0 <= y and y < size):
-                if(makeMove(board, player, (x,y))):
-
-                    valid = True
-        if(not board.is_game_over() and not board.fullBoard()):
-            print("enemy's turn:")
-            if random:
-                makeRandomMove(board, bot)
-            else:
-                makeAlphaBetaMove(board, bot)
+    board = HexBoard(size)
+    for i in range(len(depths)):
+        depth = depths[i]
+        heuristics = heuristics[i]
+    while(not board.is_game_over()):
+        makeAlphaBetaMove(board, bots[bot1turn])
+        bot1turn = int(not bot1turn)
         board.print()
-    if(board.check_win(player)):
-        print("You win!")
-    elif(board.check_win(bot)):
+    if(board.check_win(bots[0])):
+        print("Bot1 wins!")
+    else:
+        print("Bot2 wins!")
+
 
 main()
