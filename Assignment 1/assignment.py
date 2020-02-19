@@ -3,6 +3,11 @@ from hex_skeleton import HexBoard
 import numpy as np
 import random
 import heapq
+import time
+
+table_random = []
+table_dijkstra = []
+MAX_TIME = 0.01
 
 def main():
     print("Hex game: how big is the board?")
@@ -25,7 +30,7 @@ def main():
 
     while(not board.is_game_over()):
         print("make a move...")
-        valid = False
+        # valid = False
         makeAlphaBetaMove(board, player, 3, True)
 
         # while(not valid):
@@ -94,7 +99,11 @@ def makeAlphaBetaMove(board, color, depth, heuristic):
     best_move = 0
     for move in getMoveList(board, color):
         makeMove(board, color, move)
-        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
+        depth = 1
+        curr = time.time()
+        while time.time() - curr < MAX_TIME:
+            value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
+            depth += 1
         unMakeMove(board, move)
         if(value < best_value):
             best_move = move
@@ -112,23 +121,16 @@ def unMakeMove(board, coordinates):
         return False
 
 def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
+    table = table_dijkstra if heuristic else table_random
+    for b_v in table:
+        b = b_v[0]
+        if b == board:
+            return b_v[1]
     enemy = board.get_opposite_color(color)
     val1 = dijkstra(board,board.get_start_border(enemy),enemy)
     val2 = dijkstra(board,board.get_start_border(color),color)
-    if heuristic:
-        if not all([val1, val2, depth]):
-            if maximize:
-                return val1 - val2
-            else:
-                return val2 - val1
-    else:
-        if val1 == 0:
-            return 0
-        elif val2 == 0:
-            return 1
-        else:
-            return random.random()
-
+    if not all([val1, val2, depth]):
+        return evaluate(val1, val2, heuristic, maximize)
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
@@ -147,7 +149,30 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
             beta = min(beta, value)
             if (alpha >= beta):
                 break
+            
+    add = True
+    for b_v in table:
+        b = b_v[0]
+        if b == board:
+            add = False
+        
+    if add:
+        table.append((board,value))
     return value
+
+def evaluate(val1, val2, heuristic, maximize):
+    if heuristic:
+        if maximize:
+            return val1 - val2
+        else:
+            return val2 - val1
+    else:
+        if val1 == 0:
+            return 0
+        elif val2 == 0:
+            return 1
+        else:
+            return random.random()
 
 def dijkstra(board, root, color):
     Q = []
@@ -233,7 +258,16 @@ def test_true_skill():
                     r1, r3 = rate_1vs1(r3, r1)
                 if i == 2:
                     r2, r3 = rate_1vs1(r3, r2)
+            board.print()
             print(r1, r2, r3)
             del board
+    for b_v in table_dijkstra:
+        print(b_v[1], end =" : ")
+    print()
+
+    for b_v in table_random:
+        print(b_v[1], end =" : ")
+    print()
+
 test_true_skill()
 # main()
