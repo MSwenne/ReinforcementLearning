@@ -12,8 +12,7 @@ MAX_TIME = 0.01
 def main():
     play = input("Play game, test or trueskill? (1, 2 or 3)")
     if play == 1:
-        ab = input("vs random bot or alpha beta bot (1 or 2)")
-        play_game(ab)
+        play_game()
     if play == 2:
         test()
     if play == 3:
@@ -39,7 +38,7 @@ def init():
     bot = HexBoard.RED if color else HexBoard.BLUE
     return board, player, bot
 
-def play_game(ab):
+def play_game():
     board, player, bot = init()
 
     while(not board.is_game_over()):
@@ -50,10 +49,7 @@ def play_game(ab):
             print("You win!")
         else:
             print("enemy's turn:")
-            if ab == 1:
-                makeRandomMove(board, bot)
-            if ab == 2:
-                makeAlphaBetaMove(board, bot, 3, True)
+            makeAlphaBetaMove(board, bot, 3, True)
         board.print()
     if board.check_win(player):
         print("You win!")
@@ -90,8 +86,8 @@ def makeMove(board, color):
         if(not (0 <= x and x < board.size and 0 <= y and y < board.size)):
             print("Invalid coordinates!")
         else:
-            if(board.is_empty(coordinates)):
-                board.place(coordinates, color)
+            if(board.is_empty((x,y))):
+                board.place((x,y), color)
                 print("Place already taken! ")
             else:
                 valid = True
@@ -99,20 +95,12 @@ def makeMove(board, color):
     print("Cannot place, not empty!")
     return False
 
-def makeRandomMove(board, color):
-    x = np.random.randint(0,board.size)
-    y = np.random.randint(0,board.size)
-    while(not makeMove(board, color, (x,y))):
-        x = np.random.randint(0,board.size)
-        y = np.random.randint(0,board.size)
-    return True
-
 def makeAlphaBetaMove(board, color, depth, heuristic):
     enemy = board.get_opposite_color(color)
     best_value = np.inf
     best_move = 0
     for move in getMoveList(board, color):
-        makeMove(board, color, move)
+        board.place(move, color)
         if depth == -1:
             depth = 1
             curr = time.time()
@@ -124,21 +112,13 @@ def makeAlphaBetaMove(board, color, depth, heuristic):
         else:
             # print("Depth: ", depth)
             value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
-        unMakeMove(board, move)
+        board.unplace(move)
         if(value < best_value):
             best_move = move
             best_value = value
     if best_move == 0:
         best_move = move
-    makeMove(board, color, best_move)
-
-def unMakeMove(board, coordinates):
-    if(not board.is_empty(coordinates)):
-        board.clear(coordinates)
-        return True
-    else:
-        print("Cannot undo, place is empty!")
-        return False
+        board.place(move, color)
 
 def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
     table = table_dijkstra if heuristic else table_random
@@ -154,18 +134,18 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
     if maximize:
         value = -np.inf
         for move in getMoveList(board, color):
-            makeMove(board, color, move)
+            board.place(move, color)
             value = max(value, alpha_beta(board, depth-1, alpha, beta, enemy, False, heuristic))
-            unMakeMove(board, move)
+            board.unplace(move)
             alpha = max(alpha, value)
             if (alpha >= beta):
                 break
     else:
         value = np.inf
         for move in getMoveList(board, color):
-            makeMove(board, color, move)
+            board.place(move, color)
             value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, True, heuristic))
-            unMakeMove(board, move)
+            board.unlace(move)
             beta = min(beta, value)
             if (alpha >= beta):
                 break
@@ -239,7 +219,6 @@ def dijkstra_Length(board, coord1, coord2, color):
     elif board.get_color(coord2) == HexBoard.EMPTY:
             return 2
     return 1
-
 
 def test_true_skill():
     bots = 3
