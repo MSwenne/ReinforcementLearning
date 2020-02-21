@@ -18,13 +18,13 @@ def makeAlphaBetaMove(board, color, depth, heuristic):
     best_move = 0
     for move in getMoveList(board, color):
         board.place(move, color)
+        if dijkstra(board,board.get_start_border(color),color) == 0:
+            return
         value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
         board.unplace(move)
-        if(value < best_value):
+        if(value <= best_value):
             best_move = move
             best_value = value
-    if best_move == 0:
-        best_move = move
     board.place(best_move, color)
 
     
@@ -40,9 +40,9 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
                 return val2 - val1
         else:
             if board.check_win(color) == 0:
-                return 1
-            elif board.check_win(enemy) == 0:
                 return 0
+            elif board.check_win(enemy) == 0:
+                return 1
             else:
                 return random.random()
     if maximize:
@@ -110,7 +110,7 @@ def dijkstra_Length(board, coord1, coord2, color):
 
 def test_true_skill():
     bots = 3
-    rounds = 10
+    rounds = 5
     size = 3
     print("board size: ", size)
     color = [HexBoard.RED, HexBoard.BLUE]
@@ -124,20 +124,19 @@ def test_true_skill():
     for round in range(rounds):
         print("round:", round+1)
         color[0], color[1] = color[1], color[0]
-
         for i in range(bots):
             board = HexBoard(size)
             depth = depths[i]
             heuristic = heuristics[i]
             while(not board.is_game_over()):
-                board.print()
                 makeAlphaBetaMove(board, color[turn], depth[turn], heuristic[turn])
                 turn = int(not turn)
             board.print()
-            if board.check_win(color[0]):
-                print("RED wins!")
+            print("bots:", i, "\t",color,"\t", end='')
+            if board.check_win(color[0]) == (color[0] == HexBoard.RED):
+                print("RED wins! ", )
             else:
-                print("BLUE wins!")
+                print("BLUE wins! ", )
             if board.check_win(color[0]):
                 if i == 0:
                     r1, r2 = rate_1vs1(r1, r2)
