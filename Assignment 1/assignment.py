@@ -10,47 +10,52 @@ table_dijkstra = []
 MAX_TIME = 0.01
 
 def main():
-    print("Hex game: how big is the board?")
-    size = input()
-    while(size == '' or not(2 < int(size) and int(size) < 10 )):
-        print("Invalid size!")
-        size = input()
-    size = int(size)
+    play = input("Play game, test or trueskill? (1, 2 or 3)")
+    if play == 1:
+        ab = input("vs random bot or alpha beta bot (1 or 2)")
+        play_game(ab)
+    if play == 2:
+        test()
+    if play == 3:
+        test_true_skill()
+
+def validate(val, lower, upper):
+    res = input(val+" = ", end="")
+    while(res == '' or not(lower < int(res) and int(res) < upper)):
+        print("Invalid input!")
+        res = input()
+    res = int(res)
+    return res
+
+def init():
+    print("Hex game: how big is the board? (minimal 2x2 and maximal 10x10)")
+    size = validate("size", 2, 10)
     print("(r)ed vs. (b)lue")
     print("blue goes from left to right, red goes from top to bottom.")
     print("which color will you be? (red=0, blue=1)")
-    color = input()
-    while(color == '' or (int(color) != 0 and int(color) != 1)):
-        print("Invalid color!")
-        color = input()
-    color = int(color)
+    color = validate("color", -1, 2)
     board = HexBoard(size)
     player = HexBoard.BLUE if color else HexBoard.RED
     bot = HexBoard.RED if color else HexBoard.BLUE
+    return board, player, bot
+
+def play_game(ab):
+    board, player, bot = init()
 
     while(not board.is_game_over()):
         print("make a move...")
-        # valid = False
-        makeAlphaBetaMove(board, player, 3, True)
-
-        # while(not valid):
-        #     x, y = get_coordinates()
-        #     if(not (0 <= x and x < size and 0 <= y and y < size)):
-        #         print("Invalid coordinates!")
-        #     else:
-        #         if(not makeMove(board, player, (x,y))):
-        #             print("Place already taken! ")
-        #         else:
-        #             valid = True
+        makeMove(board, player)
         board.print()
         if(board.is_game_over()):
             print("You win!")
         else:
             print("enemy's turn:")
-            # makeRandomMove(board, bot)
-            makeAlphaBetaMove(board, bot, 3, True)
+            if ab == 1:
+                makeRandomMove(board, bot)
+            if ab == 2:
+                makeAlphaBetaMove(board, bot, 3, True)
         board.print()
-    if(board.check_win(player)):
+    if board.check_win(player):
         print("You win!")
     else:
         print("You lose!")
@@ -78,9 +83,18 @@ def getMoveList(board, color):
                 moves.append((x,y))
     return moves
 
-def makeMove(board, color, coordinates):
-    if(board.is_empty(coordinates)):
-        board.place(coordinates, color)
+def makeMove(board, color):
+    valid = False
+    while(not valid):
+        x, y = get_coordinates()
+        if(not (0 <= x and x < board.size and 0 <= y and y < board.size)):
+            print("Invalid coordinates!")
+        else:
+            if(board.is_empty(coordinates)):
+                board.place(coordinates, color)
+                print("Place already taken! ")
+            else:
+                valid = True
         return True
     print("Cannot place, not empty!")
     return False
@@ -99,11 +113,17 @@ def makeAlphaBetaMove(board, color, depth, heuristic):
     best_move = 0
     for move in getMoveList(board, color):
         makeMove(board, color, move)
-        depth = 1
-        curr = time.time()
-        while time.time() - curr < MAX_TIME:
+        if depth == -1:
+            depth = 1
+            curr = time.time()
+            while time.time() - curr < MAX_TIME and depth < board.size*board.size:
+                value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
+                depth += 1
+            # print("Depth: ", depth)
+            depth = -1
+        else:
+            # print("Depth: ", depth)
             value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic)
-            depth += 1
         unMakeMove(board, move)
         if(value < best_value):
             best_move = move
@@ -224,7 +244,7 @@ def dijkstra_Length(board, coord1, coord2, color):
 def test_true_skill():
     bots = 3
     rounds = 5
-    size = 3
+    size = 4
     print("board size: ", size)
     color = [HexBoard.RED, HexBoard.BLUE]
     depths = [[3, 3], [3, 4], [3, 4]]
@@ -269,5 +289,32 @@ def test_true_skill():
         print(b_v[1], end =" : ")
     print()
 
+def test():
+    size = 4
+    color = [HexBoard.RED, HexBoard.BLUE]
+    depth = [-1, 3]
+    heuristic = [True, True]
+    win = [0, 0]
+    turn = 1
+    for _ in range(5):
+        # print("round:", round+1)
+        board = HexBoard(size)
+        while(not board.is_game_over()):
+            makeAlphaBetaMove(board, color[turn], depth[turn], heuristic[turn])
+            turn = int(not turn)
+            # board.print()
+        if board.check_win(color[0]):
+            print("RED")
+            win[0] += 1
+        if board.check_win(color[1]):
+            print("BLUE")
+            win[1] += 1
+        board.print()
+        del board
+    print(win)
+
+
+
+# test()
 test_true_skill()
 # main()
