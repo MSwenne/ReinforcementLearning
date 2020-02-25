@@ -131,8 +131,8 @@ def test_true_skill():
             while(not board.is_game_over()):
                 makeAlphaBetaMove(board, color[turn], depth[turn], heuristic[turn])
                 turn = int(not turn)
+            print("bots: ", color)
             board.print()
-            print("bots:", i, "\t",color,"\t", end='')
             if board.check_win(color[0]) == (color[0] == HexBoard.RED):
                 print("RED wins! ", )
             else:
