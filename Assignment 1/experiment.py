@@ -39,10 +39,10 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
             else:
                 return val2 - val1
         else:
-            if board.check_win(color) == 0:
-                return 0
-            elif board.check_win(enemy) == 0:
-                return 1
+            if val2 == 0:
+                return 0 if maximize else 1
+            elif val1 == 0:
+                return 1 if maximize else 0
             else:
                 return random.random()
     if maximize:
@@ -110,47 +110,48 @@ def dijkstra_Length(board, coord1, coord2, color):
 
 def test_true_skill():
     bots = 3
-    rounds = 5
-    size = 3
+    rounds = 2
+    size = 4
     print("board size: ", size)
-    color = [HexBoard.RED, HexBoard.BLUE]
+    color = [HexBoard.BLUE, HexBoard.RED]
+    bots_print = [[1, 2], [1, 3], [2, 3]]
+    color_print = ["BLUE", "RED"]
     depths = [[3, 3], [3, 4], [3, 4]]
     heuristics = [[False, True], [False, True], [True, True]]
-    turn = 0
     r1 = Rating()
     r2 = Rating()
     r3 = Rating()
     print(r1, r2, r3)
     for round in range(rounds):
         print("round:", round+1)
-        color[0], color[1] = color[1], color[0]
+        turn = 0 if round % 2 == 0 else 1
         for i in range(bots):
             board = HexBoard(size)
             depth = depths[i]
             heuristic = heuristics[i]
+            print("bots: [" ,bots_print[i][turn], ",",bots_print[i][not(turn)],"]\t", color_print[0], ":", color_print[1])
             while(not board.is_game_over()):
                 makeAlphaBetaMove(board, color[turn], depth[turn], heuristic[turn])
                 turn = int(not turn)
-            print("bots: ", color)
             board.print()
             if board.check_win(color[0]) == (color[0] == HexBoard.RED):
                 print("RED wins! ", )
             else:
                 print("BLUE wins! ", )
-            if board.check_win(color[0]):
+            if board.check_win(color[0]) == (color[0] == HexBoard.RED):
+                if i == 0:
+                    r2, r1 = rate_1vs1(r1, r2)
+                if i == 1:
+                    r3, r1 = rate_1vs1(r1, r3)
+                if i == 2:
+                    r3, r2 = rate_1vs1(r2, r3)
+            else:
                 if i == 0:
                     r1, r2 = rate_1vs1(r1, r2)
                 if i == 1:
                     r1, r3 = rate_1vs1(r1, r3)
                 if i == 2:
                     r2, r3 = rate_1vs1(r2, r3)
-            # else:
-            #     if i == 0:
-            #         r1, r2 = rate_1vs1(r2, r1)
-            #     if i == 1:
-            #         r1, r3 = rate_1vs1(r3, r1)
-            #     if i == 2:
-            #         r2, r3 = rate_1vs1(r3, r2)
             print(r1, r2, r3)
             del board
 
