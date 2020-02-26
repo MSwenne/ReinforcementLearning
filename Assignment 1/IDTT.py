@@ -48,14 +48,29 @@ def pre_alpha_beta(board, depth, color, heuristic, TT):
     print(best_value)
     return best_move
 
+
+def storeTranspositionTable(TT, heuristic, depth, board, value):
+    if not TT: 
+      return None 
+    table = table_dijkstra if heuristic else table_random
+    table.append((board, depth, value))
+
+
+def getTranspositionTable(heuristic, depth, board):
+    table = table_dijkstra if heuristic else table_random
+    for storedBoard, storedDepth, storedValue in table:
+        if(storedDepth > depth and depth > 0):
+            # check for board comparison
+            if storedBoard == board:
+                return storedValue
+    return None
+
     
 def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
     if TT:
-        table = table_dijkstra if heuristic else table_random
-        for b_v in table:
-            b = b_v[0]
-            if b == board:
-                return b_v[1]
+        value = getTranspositionTable(heuristic, depth, board)
+        if value:
+            return value 
     enemy = board.get_opposite_color(color)
     val1 = dijkstra(board,board.get_start_border(enemy),enemy)
     val2 = dijkstra(board,board.get_start_border(color),color)
@@ -90,15 +105,12 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
             beta = min(beta, value)
             if (alpha >= beta):
                 break
-    # if TT:
-    #     add = True
-    #     for b_v in table:
-    #         b = b_v[0]
-    #         if b == board:
-    #             add = False
-    #     if add:
-    #         table.append((board,value))
+    storeTranspositionTable(TT, heuristic, depth, board, value)
     return value
+
+
+# At dept d store board and val1 and val2
+
 
 def dijkstra(board, root, color):
     Q = []
@@ -151,10 +163,10 @@ def test_true_skill():
     color = [HexBoard.RED, HexBoard.BLUE]
     bots_print = ["[1, 2]", "[1, 3]", "[2, 3]"]
     color_print = ["RED", "BLUE"]
-    depths = [[3, -1], [3, -1], [-1, -1]]
-    heuristics = [[False, True], [False, True], [True, True]]
-    TT = [[False, True], [False, True], [True, True]]
-    turn = 1
+    depths = [[-1, -1], [3, -1], [-1, -1]]
+    heuristics = [[True, True], [False, True], [True, True]]
+    TT = [[True, True], [False, True], [True, True]]
+    turn = 0
     for round in range(rounds):
         print("round:", round+1)
         color[0], color[1] = color[1], color[0]
