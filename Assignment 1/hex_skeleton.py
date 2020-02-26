@@ -99,5 +99,5 @@ class HexBoard:
                 (self.board[(i,j)] == other.board[(i,j)])
         for i in range(self.size):
             for j in range(self.size):
-                equal2.append((self.board[(i,j)] + other.board[(i,j)] == 3) or (self.board[(i,j)] + other.board[(i,j)] == 6))
+                equal2.append(self.board[(i,j)] + other.board[(i,j)] == 6)
         return (all(equal1) or all(equal2))
