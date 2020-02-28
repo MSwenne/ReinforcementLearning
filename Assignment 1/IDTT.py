@@ -3,6 +3,7 @@ import numpy as np
 import random
 import heapq
 import time
+import copy 
 
 table_random = []
 table_dijkstra = []
@@ -53,14 +54,14 @@ def storeTranspositionTable(TT, heuristic, depth, board, value):
     if not TT: 
       return None 
     table = table_dijkstra if heuristic else table_random
-    table.append((board, depth, value))
+    table.append((copy.deepcopy(board), depth, value))
 
 
 def getTranspositionTable(heuristic, depth, board):
     table = table_dijkstra if heuristic else table_random
     for storedBoard, storedDepth, storedValue in table:
-        if(storedDepth > depth and depth > 0):
-            # check for board comparison
+        if(storedDepth >= depth and depth > 0):
+            # check for board comparison            
             if storedBoard == board:
                 return storedValue
     return None
