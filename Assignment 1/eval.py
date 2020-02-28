@@ -4,10 +4,11 @@ import random
 import heapq
 
 def play_game():
-    board, turn = init()
+    board, player = init()
+    turn = player
     color = [HexBoard.RED, HexBoard.BLUE]
     while(not board.is_game_over()):
-        if turn:
+        if turn == player:
             print("make a move...")
             makeMove(board, color[turn])
         else:
@@ -26,9 +27,9 @@ def init():
     print("(r)ed vs. (b)lue")
     print("blue goes from left to right, red goes from top to bottom.")
     print("which color will you be? (red=0, blue=1)")
-    turn = validate("color", -1, 2)
+    color = validate("color", -1, 2)
     board = HexBoard(size)
-    return board, turn
+    return board, color
 
 def get_coordinates():
     print("x = ",end="")
