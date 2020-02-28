@@ -31,7 +31,7 @@ def getMoveList(board, color):
     # Return the list of empty coordinates
     return moves
 
-# Makes a move that uses alpha-beta search and a random eval
+# Makes a move that uses alpha-beta search and a random or Dijkstra eval
 def makeAlphaBetaMove(board, color, depth, heuristic):
     # Initialise the enemy, best_value and best_move
     enemy = board.get_opposite_color(color)
@@ -61,6 +61,7 @@ def makeAlphaBetaMove(board, color, depth, heuristic):
 
 # Does n-depth alpha_beta search on a board with a random or Dijkstra eval
 def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic):
+    # Initialise enemy, val1 and val2
     enemy = board.get_opposite_color(color)
     val1 = dijkstra(board,board.get_start_border(enemy),enemy)
     val2 = dijkstra(board,board.get_start_border(color),color)

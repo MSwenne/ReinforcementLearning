@@ -1,3 +1,16 @@
+#####################################################################
+#                                                                   #
+# Reinforcement Learning Assingment 1: HEX                          #
+#   Part 1: Search                                                  #
+#                                                                   #
+# Edited by:  Amin Moradi         S2588862                          #
+#             Bartek Piaskowski   S2687194                          #
+#             Martijn Swenne      S1923889                          #
+#                                                                   #
+# Last edited: 28 Februari 2020                                     #
+#                                                                   #
+#####################################################################
+
 class HexBoard:
     BLUE = 1
     RED = 2
@@ -24,10 +37,6 @@ class HexBoard:
             self.board[coordinates] = color
             if self.check_win(HexBoard.RED) or self.check_win(HexBoard.BLUE):
                 self.game_over = True
-    def unplace(self, coordinates):
-        if not (self.board[coordinates] == HexBoard.EMPTY):
-            self.board[coordinates] = HexBoard.EMPTY
-            self.game_over = False
     def clear(self, coordinates):
         if not (self.board[coordinates] == HexBoard.EMPTY):
             self.board[coordinates] = HexBoard.EMPTY
@@ -91,6 +100,14 @@ class HexBoard:
             print("|")
         print(" -----------------------")
 
+    # Added
+    # Places empty on coordinates
+    def unplace(self, coordinates):
+        if not (self.board[coordinates] == HexBoard.EMPTY):
+            self.board[coordinates] = HexBoard.EMPTY
+            self.game_over = False
+    # Added
+    # Checks if two board states are equal (overwrites ==)
     def __eq__(self, other): 
         return len([(i,j) 
                 for i in range(self.size)
