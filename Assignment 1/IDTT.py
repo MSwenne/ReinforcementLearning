@@ -141,6 +141,7 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
             elif val1 == 0:
                 return 1 if maximize else 0
             else:
+                return random.random()
     # If this is the maximizing player...
     if maximize:
         # ...initialise the value...
@@ -256,6 +257,7 @@ def dijkstra_Length(board, coord1, coord2, color):
         # If both coordinates are empty, distance = 2
         return 2
     # If exactly one coordinate is empty, distance is 1
+    return 1
 
 # Runs several rounds where 3 bots plays against eachother
 def test_true_skill():
