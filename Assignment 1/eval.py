@@ -5,7 +5,7 @@ import heapq
 
 def play_game():
     board, player = init()
-    turn = player
+    turn = 0
     color = [HexBoard.RED, HexBoard.BLUE]
     while(not board.is_game_over()):
         if turn == player:
@@ -26,7 +26,7 @@ def init():
     size = validate("size", 2, 10)
     print("(r)ed vs. (b)lue")
     print("blue goes from left to right, red goes from top to bottom.")
-    print("which color will you be? (red=0, blue=1)")
+    print("which color will you be? Keep in mind that red will start (red=0, blue=1)")
     color = validate("color", -1, 2)
     board = HexBoard(size)
     return board, color
