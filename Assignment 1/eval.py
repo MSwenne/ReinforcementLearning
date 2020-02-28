@@ -10,7 +10,7 @@ def play_game():
     while(not board.is_game_over()):
         if turn == player:
             print("make a move...")
-            makeMove(board, color[turn])
+            makeAlphaBetaMove(board, color[turn], 3)
         else:
             print("enemy's turn:")
             makeAlphaBetaMove(board, color[turn], 3)
@@ -98,8 +98,10 @@ def alpha_beta(board, depth, alpha, beta, color, maximize):
     val2 = dijkstra(board,board.get_start_border(color),color)
     if not all([val1, val2, depth]):
         if maximize:
+            print("val1-val2:",val1, val2, val1-val2)
             return val1 - val2
         else:
+            print("val2-val1:", val1, val2, val2-val1)
             return val2 - val1
     if maximize:
         value = -np.inf
