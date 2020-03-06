@@ -1,6 +1,6 @@
 #####################################################################
 #                                                                   #
-# Reinforcement Learning Assignment 1: HEX                          #
+# Reinforcement Learning Assignment 2: HEX                          #
 #   Part 1: Search                                                  #
 #                                                                   #
 # Made by:  Amin Moradi         S2588862                            #
@@ -16,12 +16,89 @@ from hex_skeleton import HexBoard
 import numpy as np
 import random
 import heapq
-import time
-import copy 
 
-table_random = []       # Transposition Table for random heuristics
-table_dijkstra = []     # Transposition Table for Dijkstra heuristics
-MAX_TIME = 0.1          # Max time for Iterative Deepening
+# Allows the user to play a game of Hex versus a bot
+# The bot uses alpha-beta search and a random evaluation
+def play_game():
+    #initialize the board size and player color
+    board, player = init()
+    turn = 0
+    color = [HexBoard.RED, HexBoard.BLUE]
+    # Run a game until it is over
+    while(not board.is_game_over()):
+        # If it is the turn of the player...
+        if turn == player:
+            print("make a move...")
+            # ... let him make a move
+            makeMove(board, color[turn])
+        # If it is the turn of the bot...
+        else:
+            print("enemy's turn:")
+            # Generate a move for the bot
+            makeAlphaBetaMove(board, color[turn], 3)
+        # Print the board after every move
+        board.print()
+        # Switch turns
+        turn = int(not turn)
+    # If the game is over, show who has won
+    if board.check_win(color[0]):
+        print("RED wins!")
+    else:
+        print("BLUE wins!")
+
+# Function that asks questions to the user about the game parameters
+def init():
+    print("Hex game: how big is the board? (minimal 2x2 and maximal 10x10)")
+    # Ask the user for a board size
+    size = validate("size", 2, 10)
+    print("(r)ed vs. (b)lue")
+    print("blue goes from left to right, red goes from top to bottom.")
+    print("which color will you be? Keep in mind that red will start (red=0, blue=1)")
+    # Ask the user which color he would like to play with
+    color = validate("color", -1, 2)
+    # Create a board
+    board = HexBoard(size)
+    return board, color
+
+# Asks the user to give valid coordinates to make a move on
+def get_coordinates():
+    print("x = ",end="")
+    # Ask the user for the x-coordinate
+    x = input()
+    # While it is an incorrect input, ask the user again
+    while x == '':
+        print("invalid x-coordinate!")
+        print("x = ",end="")
+        x = input()
+    print("y = ",end="")
+    # Ask the user for the y-coordinate
+    y = input()
+    # While it is an incorrect input, ask the user again
+    while y == '':
+        print("invalid y-coordinate!")
+        print("y = ",end="")
+        y = input()
+    # Return the coordinates
+    return int(x), int(y)
+
+# Lets the user make a move. 
+def makeMove(board, color):
+    valid = False
+    # While the user gives invalid coordinates, ask the user again
+    while(not valid):
+        # Get the coordinates
+        x, y = get_coordinates()
+        # Check if the coordinates are on the board
+        if(not (0 <= x and x < board.size and 0 <= y and y < board.size)):
+            print("Invalid coordinates!")
+        else:
+            # Check if the coordinates are empty
+            if(board.is_empty((x,y))):
+                # If it's empty, place your color
+                board.place((x,y), color)
+                return True
+            else:
+                print("Place already taken!")
 
 # Returns all empty coordinates
 def getMoveList(board, color):
@@ -36,34 +113,19 @@ def getMoveList(board, color):
     # Return the list of empty coordinates
     return moves
 
-# Makes a move that uses alpha-beta search and a random eval
-def makeAlphaBetaMove(board, color, depth, heuristic, TT):
-    # If depth =-1, use Iterative Deepening
-    if depth == -1:
-        # Start with depth = 1 and set start time
-        depth = 1
-        curr = time.time()
-        # While max time is not exeeded or maximum depth has been reached...
-        while time.time() - curr < MAX_TIME and depth < board.size*board.size:
-            # ...do pre-Alpha Beta, which checks all moves
-            best_move = pre_alpha_beta(board, depth, color, heuristic, TT)
-            # If a move ended the game during pre-Alpha Beta, do nothing
-            if not best_move:
-                return
-            # Increment depth
-            depth += 1
-    # If depth != -1, do not use Iterative deepening
-    else:
-        # Do pre-Alpha Beta, which checks all moves
-        best_move = pre_alpha_beta(board, depth, color, heuristic, TT)
-        # If a move ended the game during pre-Alpha Beta, do nothing
-        if not best_move:
-            return
-    # Place the best move
-    board.place(best_move, color)
+# Validates if an input is between upper and lower boundaries
+def validate(val, lower, upper):
+    print(val+" = ", end="")
+    res = input()
+    # While the input is not between the upper and lower boundaries, ask the user again
+    while(res == '' or not(lower < int(res) and int(res) < upper)):
+        print("Invalid input!")
+        res = input()
+    res = int(res)
+    return res
 
-# Returns the best move based on alpha_beta search using random or Dijkstra eval
-def pre_alpha_beta(board, depth, color, heuristic, TT):
+# Makes a move that uses alpha-beta search and a random eval
+def makeAlphaBetaMove(board, color, depth):
     # Initialise the enemy, best_value and best_move
     enemy = board.get_opposite_color(color)
     best_value = np.inf
@@ -74,9 +136,9 @@ def pre_alpha_beta(board, depth, color, heuristic, TT):
         board.place(move, color)
         # If this made a path from border to border, return
         if dijkstra(board,board.get_start_border(color),color) == 0:
-            return None
+            return
         # ...do alpha-beta search...
-        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True, heuristic, TT)
+        value = alpha_beta(board, depth, -np.inf, np.inf, enemy, True)
         # ...and undo the move again
         board.unplace(move)
         # If the value of the alpha-beta search is better that your current best_value...
@@ -87,61 +149,24 @@ def pre_alpha_beta(board, depth, color, heuristic, TT):
     # If there is no best_move (it is still 0), just take the last viewed move
     if best_move == 0:
         best_move = move
-    # Return the best_move
-    return best_move
+    # Place the best_move
+    board.place(best_move, color)
 
-# Stores a board with corresponding value and depth in the Transposition Table
-def storeTranspositionTable(heuristic, depth, board, value):
-    # Get the table corresponding to the heuristic
-    table = table_dijkstra if heuristic else table_random
-    # Append the (board, depth, value)-triple to the Table
-    table.append((copy.deepcopy(board), depth, value))
-
-# Checks if the current board is in the Transposition Table
-def getTranspositionTable(heuristic, depth, board):
-    # Get the table corresponding to the heuristic
-    table = table_dijkstra if heuristic else table_random
-    # For each stored board...
-    for storedBoard, storedDepth, storedValue in table:
-        # ...check if the current depth is between 0 and the stored depth
-        if(depth > 0 and depth <= storedDepth):
-            # check for board comparison            
-            if storedBoard == board:
-                # If the board is found, return the stored value
-                return storedValue
-    # If the board is not in the Table, return None
-    return None
-
-# Does n-depth alpha_beta search on a board with a random or Dijkstra eval
-def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
-    # If we use the Transposition Table...
-    if TT:
-        # ...check if the current board is in the Table
-        value = getTranspositionTable(heuristic, depth, board)
-        # If it is stored in the Table...
-        if value:
-            # ...return the value from the Table
-            return value
-    # Initialise enemy, val1 and val2 
+    
+# Does n-depth alpha_beta search on a board with a Dijkstra eval
+def alpha_beta(board, depth, alpha, beta, color, maximize):
+    # Initialise enemy, val1 and val2
     enemy = board.get_opposite_color(color)
     val1 = dijkstra(board,board.get_start_border(enemy),enemy)
     val2 = dijkstra(board,board.get_start_border(color),color)
     # If depth is 0 or the game ended, eval the board
     if not all([val1, val2, depth]):
-        # If you want dijkstra eval, do this
-        if heuristic:
-            if maximize:
-                return val1 - val2
-            else:
-                return val2 - val1
-        # If you want random eval, do this
+        if maximize:
+            print("val1-val2:",val1, val2, val1-val2)
+            return val1 - val2
         else:
-            if val2 == 0:
-                return 0 if maximize else 1
-            elif val1 == 0:
-                return 1 if maximize else 0
-            else:
-                return random.random()
+            print("val2-val1:", val1, val2, val2-val1)
+            return val2 - val1
     # If this is the maximizing player...
     if maximize:
         # ...initialise the value...
@@ -151,7 +176,7 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
             # ...play the move...
             board.place(move, color)
             # ...recursively call alpha_beta search on the enemy...
-            value = max(value, alpha_beta(board, depth-1, alpha, beta, enemy, False, heuristic, TT))
+            value = max(value, alpha_beta(board, depth-1, alpha, beta, enemy, False))
             # ...undo the move...
             board.unplace(move)
             # ...and update the alpha value
@@ -168,7 +193,7 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
             # ...play the move...
             board.place(move, color)
             # ...recursively call alpha_beta search on the enemy...
-            value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, True, heuristic, TT))
+            value = min(value, alpha_beta(board, depth-1, alpha, beta, enemy, True))
             # ...undo the move...
             board.unplace(move)
             # ...and update the alpha value
@@ -176,10 +201,6 @@ def alpha_beta(board, depth, alpha, beta, color, maximize, heuristic, TT):
             # If alpha is greater or equal to beta, break
             if (alpha >= beta):
                 break
-    # If we are using the Transposition Table...
-    if TT:
-        # ...store the current (board, depth, value)-triple
-        storeTranspositionTable(heuristic, depth, board, value)
     # Return the eval value
     return value
 
@@ -259,69 +280,6 @@ def dijkstra_Length(board, coord1, coord2, color):
     # If exactly one coordinate is empty, distance is 1
     return 1
 
-# Runs several rounds where 3 bots plays against eachother
-def test_true_skill():
-    # Initialise the number of bots (max 3), rounds and board size
-    bots = 1
-    rounds = 1
-    size = 4
-    print("board size: ", size)
-    # Initialise color, printing params, depths, heuristics and TT
-    color = [HexBoard.RED, HexBoard.BLUE]
-    bots_print = ["[1, 2]", "[1, 3]", "[2, 3]"]
-    color_print = ["RED", "BLUE"]
-    depths = [[-1, -1], [3, -1], [-1, -1]]
-    heuristics = [[True, True], [False, True], [True, True]]
-    TTs = [[True, True], [False, True], [True, True]]
-    # Initialise ratings
-    r1 = Rating()
-    r2 = Rating()
-    r3 = Rating()
-    print(r1, r2, r3)
-    # For each round:
-    for round in range(rounds):
-        print("round:", round+1)
-        # For each bot-pair:
-        for i in range(bots):
-            # Switch starting player each round
-            turn = 0 if round % 2 == 0 else 1
-            # Setup board, depth, heuristic and TT
-            board = HexBoard(size)
-            depth = depths[i]
-            heuristic = heuristics[i]
-            TT = TTs[i]
-            print("bots: " ,bots_print[i],"\t", color_print[0], ":", color_print[1],"\t", color_print[turn], "starts")
-            # While the game is not over
-            while(not board.is_game_over()):
-                # Make a ove using alpha_beta search and a random or Dijkstra eval
-                makeAlphaBetaMove(board, color[turn], depth[turn], heuristic[turn], TT)
-                # Switch turns
-                turn = int(not turn)
-            # Print board and winner after game ends
-            board.print()
-            if board.check_win(color[1]):
-                print("RED wins! ", )
-            else:
-                print("BLUE wins! ", )
-            # Update ratings accordingly
-            if board.check_win(color[0]):
-                if i == 0:
-                    r1, r2 = rate_1vs1(r1, r2)
-                if i == 1:
-                    r1, r3 = rate_1vs1(r1, r3)
-                if i == 2:
-                    r2, r3 = rate_1vs1(r2, r3)
-            else:
-                if i == 0:
-                    r2, r1 = rate_1vs1(r2, r1)
-                if i == 1:
-                    r3, r1 = rate_1vs1(r3, r1)
-                if i == 2:
-                    r3, r2 = rate_1vs1(r3, r2)
-            # Print new ratings and clean up board
-            print(r1, r2, r3)
-            del board
-
-# Calls test_true_skill
+# Calls play a game
 if __name__ == "__main__":
-    test_true_skill()
+    play_game()

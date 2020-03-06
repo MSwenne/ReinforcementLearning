@@ -1,6 +1,6 @@
 #####################################################################
 #                                                                   #
-# Reinforcement Learning Assingment 1: HEX                          #
+# Reinforcement Learning Assignment 1: HEX                          #
 #   Part 1: Search                                                  #
 #                                                                   #
 # Made by:  Amin Moradi         S2588862                            #
