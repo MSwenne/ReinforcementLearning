@@ -1,7 +1,7 @@
 #####################################################################
 #                                                                   #
 # Reinforcement Learning Assignment 2: HEX                          #
-#   MCTS class                                                      #
+#   Main function                                                   #
 #                                                                   #
 # Made by:  Amin Moradi         S2588862                            #
 #           Bartek Piaskowski   S2687194                            #
@@ -12,17 +12,21 @@
 #                                                                   #
 #####################################################################
 
+
+
 from hex_skeleton import HexBoard
-import numpy as np
-import random
-import heapq
+from AlphaBeta import AlphaBeta
+from MCTS_Hex import MCTS
+from PlayGame import Play
+
+if __name__ == "__main__":
+    print("Which part of the assignment would you like to see?")
+    print("(M)CTS Hex, (E)xperiment, (T)une")
+    part = input()
+    while part not in ['M', 'E', 'T']:
+        part = input()
 
 
-class MCTS:
-    def makeMCTSmove():
-        pass
-
-    def MCTS():
-        curr = time.time()
-        while time.time() - curr < MAX_TIME:
-            print("Hello")
+    
+    bot = MCTS()
+    game_player = Play(bot)
