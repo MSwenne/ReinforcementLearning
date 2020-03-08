@@ -106,6 +106,20 @@ class HexBoard:
         if not (self.board[coordinates] == HexBoard.EMPTY):
             self.board[coordinates] = HexBoard.EMPTY
             self.game_over = False
+
+    # Returns all empty coordinates
+    def getMoveList(self, color):
+        # Initialise an empty list of empty coordinates
+        moves = []
+        for x in range(self.size):
+            for y in range(self.size):
+                # If the coordinates are empty...
+                if(self.is_empty((x,y))):
+                    # ... append the coordinates to the list
+                    moves.append((x,y))
+        # Return the list of empty coordinates
+        return moves
+
     # Added
     # Checks if two board states are equal (overwrites ==)
     def __eq__(self, other): 

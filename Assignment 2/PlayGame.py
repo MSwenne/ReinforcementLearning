@@ -19,8 +19,9 @@ import heapq
 
 
 class Play():
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, player2, player1=None):
+        self.p1 = player1 # if None, human play
+        self.p2 = player2
 
     # Allows the user to play a game of Hex versus a bot
     # The bot uses alpha-beta search and a random evaluation
@@ -41,7 +42,7 @@ class Play():
             else:
                 print("enemy's turn:")
                 # Generate a move for the bot
-                self.bot.makeMove(board, color[turn], 3)
+                self.player1.makeMove(board, color[turn], 3)
             # Print the board after every move
             board.print()
             # Switch turns

@@ -21,19 +21,6 @@ class AlphaBeta:
     def __init__(self):
         pass
 
-    # Returns all empty coordinates
-    def getMoveList(self, board, color):
-        # Initialise an empty list of empty coordinates
-        moves = []
-        for x in range(board.size):
-            for y in range(board.size):
-                # If the coordinates are empty...
-                if(board.is_empty((x,y))):
-                    # ... append the coordinates to the list
-                    moves.append((x,y))
-        # Return the list of empty coordinates
-        return moves
-
     # Makes a move that uses alpha-beta search and a random eval
     def makeMove(self, board, color, depth):
         # Initialise the enemy, best_value and best_move
@@ -41,7 +28,7 @@ class AlphaBeta:
         best_value = np.inf
         best_move = 0
         # For every possible move on the board...
-        for move in self.getMoveList(board, color):
+        for move in board.getMoveList(color):
             # ...play this move...
             board.place(move, color)
             # If this made a path from border to border, return
@@ -82,7 +69,7 @@ class AlphaBeta:
             # ...initialise the value...
             value = -np.inf
             # ...and for each possible move...
-            for move in self.getMoveList(board, color):
+            for move in board.getMoveList(color):
                 # ...play the move...
                 board.place(move, color)
                 # ...recursively call alpha_beta search on the enemy...
@@ -99,7 +86,7 @@ class AlphaBeta:
             # ...initialise the value...
             value = np.inf
             # ...and for each possible move...
-            for move in self.getMoveList(board, color):
+            for move in board.getMoveList(color):
                 # ...play the move...
                 board.place(move, color)
                 # ...recursively call alpha_beta search on the enemy...
