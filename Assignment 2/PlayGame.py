@@ -35,15 +35,22 @@ class Play():
         while(not board.is_game_over()):
             # If it is the turn of the player...
             if turn == player:
-                print("make a move...")
-                # ... let him make a move
-                self.makeMove(board, color[turn])
+                if self.p1 == None:
+                    print("make a move...")
+                    # ... let him make a move
+                    self.makeMove(board, color[turn])
+                else:
+                    board = self.p1.makeMove(board, color[turn])
             # If it is the turn of the bot...
             else:
                 print("enemy's turn:")
                 # Generate a move for the bot
-                self.player1.makeMove(board, color[turn], 3)
+                board = self.p2.makeMove(board, color[turn])
             # Print the board after every move
+            if board:
+                pass
+            else:
+                print("outside")
             board.print()
             # Switch turns
             turn = int(not turn)
@@ -58,11 +65,15 @@ class Play():
         print("Hex game: how big is the board? (minimal 2x2 and maximal 10x10)")
         # Ask the user for a board size
         size = self.validate("size", 2, 10)
-        print("(r)ed vs. (b)lue")
-        print("blue goes from left to right, red goes from top to bottom.")
-        print("which color will you be? Keep in mind that red will start (red=0, blue=1)")
-        # Ask the user which color he would like to play with
-        color = self.validate("color", -1, 2)
+        if self.p1 == None:
+            print("(r)ed vs. (b)lue")
+            print("blue goes from left to right, red goes from top to bottom.")
+            print("which color will you be? Keep in mind that red will start (red=0, blue=1)")
+            # Ask the user which color he would like to play with
+            color = self.validate("color", -1, 2)
+        else:
+            # bot1 plays red
+            color = 0
         # Create a board
         board = HexBoard(size)
         return board, color

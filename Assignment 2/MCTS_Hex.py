@@ -13,79 +13,99 @@
 #####################################################################
 
 from hex_skeleton import HexBoard
+from operator import itemgetter 
 import numpy as np
 import random
 import heapq
 import time
-MAX_TIME = 0.1
+import copy
 
 class MCTS:
-    def __init__(self, Cp):
+    def __init__(self, Cp, itermax):
         self.Cp = Cp
+        self.itermax = itermax
         self.visit = 0
 
-    def makeMCTSmove(self):
-        pass
-
-    def MCTS(self, board, color, itermax):
+    def makeMove(self, board, color):
         root = Node(board, color, None)
         curr = time.time()
-        while time.time() - curr < MAX_TIME:
+        for _ in range(self.itermax):
+            # Selection
             curr = self.selectPromising(root)
+            # Expansion
             if not curr.getBoard().is_game_over():
-                self.expand(curr)
-            explore = curr
-            if len(curr.getChildren()) > 0:
-                explore = self.randomMove(curr)
-            result = self.simulate(explore)
-            self.backPropogation(explore, result)
+                child = self.expand(curr)
+            # Simulation
+            result = self.playout(child)
+            self.visit += 1
+            # Backpropagation
+            while child.getParent() != None:
+                child.updateState(result)
+                child = child.getParent()
+            child.updateState(result)
         winner = self.findBestUCT(root)
-        return winner.getBoard()
+        winner = winner.getBoard()
+        if winner:
+            pass
+        else:
+            print("MCTS")
+        # self.delete(root)
+        return winner
 
     def selectPromising(self, root):
         curr = root
-        while len(curr.getChildren()) == len(curr.getChildren()):
+        while len(curr.getBoard().getMoveList(curr.getColor())) == len(curr.getChildren()):
+            if curr.getBoard().is_game_over():
+                return curr
             curr = self.findBestUCT(curr)
         return curr
 
     def findBestUCT(self, curr):
-        if len(curr.getBoard().getMoveList()) == len(curr.getChildren()):
-            UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
-            return max(UCTs)[1]
+        UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
+        print(len(UCTs))
+        if len(UCTs) == 0:
+            curr.getBoard().print()
+        return max(UCTs, key = itemgetter(0))[1]
 
     def UCT(self, curr):
         win, visit = curr.getState()
         return win / visit - self.Cp * np.log(self.visit / visit)
 
     def expand(self,curr):
-        board = curr.getBoard()
+        board = copy.deepcopy(curr.getBoard())
         color = curr.getColor()
-        board = self.randomMove(board, color)
-        child = Node(board, board.get_opposite_color(color), curr)
-        curr.addChild(child)
-        result = self.playout(child)
-        while child.getParent() != None:
-            child.updateState(result)
-            child = child.getParent()
-        child.updateState(result)
+        if(len(curr.getMoves()) != 0):
+            board.place(curr.ExpandRandomMove(), color)
+            child = Node(board, board.get_opposite_color(color), curr)
+            curr.addChild(child)
+            return child
+        return curr
 
     def playout(self, curr):
         board = curr.getBoard()
         player = curr.getColor()
-        color = player
-        while not board.is_game_over():
-            board = self.randomMove(board, color)
-            color = board.get_opposite_color(color)
-        return int(board.check_win(player))
+        win, color = self.recursivePlayout(board, player)
+        return int((win and color == player) or ((not win) and (color != player)))
 
-    def randomMove(self, board,color):
-        moves = board.getMoves(color)
-        board.place(moves[random.randint(0,len(moves))])
-        return board
+    def recursivePlayout(self, board, color):
+        if board.is_game_over():
+            return board.check_win(color), color
+        moves = board.getMoveList(color)
+        move = moves[random.randint(0,len(moves)-1)]
+        board.place(move, color)
+        win, color = self.recursivePlayout(board, board.get_opposite_color(color))
+        board.unplace(move)
+        return win, color
+
+    def delete(self, root):
+        for child in root.getChildren():
+            self.delete(child)
+        del root
 
 class Node:
     def __init__(self, board, color, parent):
         self.board = board
+        self.moves = self.board.getMoveList(color)
         self.color = color
         self.state = (0,0) # (win, visit)
         self.parent = parent
@@ -93,6 +113,15 @@ class Node:
 
     def getBoard(self):
         return self.board
+
+    def getMoves(self):
+        return self.moves
+
+    def ExpandRandomMove(self):
+        if len(self.moves) == 0:
+            self.getBoard().print()
+            return None
+        return self.moves.pop(random.randint(0,len(self.moves)-1))
 
     def getColor(self):
         return self.color

@@ -18,11 +18,11 @@ import random
 import heapq
 
 class AlphaBeta:
-    def __init__(self):
-        pass
+    def __init__(self, depth):
+        self.depth = depth
 
     # Makes a move that uses alpha-beta search and a random eval
-    def makeMove(self, board, color, depth):
+    def makeMove(self, board, color):
         # Initialise the enemy, best_value and best_move
         enemy = board.get_opposite_color(color)
         best_value = np.inf
@@ -35,7 +35,7 @@ class AlphaBeta:
             if self.dijkstra(board,board.get_start_border(color),color) == 0:
                 return
             # ...do alpha-beta search...
-            value = self.alpha_beta(board, depth, -np.inf, np.inf, enemy, True)
+            value = self.alpha_beta(board, self.depth, -np.inf, np.inf, enemy, True)
             # ...and undo the move again
             board.unplace(move)
             # If the value of the alpha-beta search is better that your current best_value...
@@ -48,21 +48,24 @@ class AlphaBeta:
             best_move = move
         # Place the best_move
         board.place(best_move, color)
+        if board:
+            pass
+        else:
+            print("Alpha-Beta")
+        return board
 
         
-    # Does n-depth alpha_beta search on a board with a Dijkstra eval
+    # Does n-self.depth alpha_beta search on a board with a Dijkstra eval
     def alpha_beta(self, board, depth, alpha, beta, color, maximize):
         # Initialise enemy, val1 and val2
         enemy = board.get_opposite_color(color)
         val1 = self.dijkstra(board,board.get_start_border(enemy),enemy)
         val2 = self.dijkstra(board,board.get_start_border(color),color)
-        # If depth is 0 or the game ended, eval the board
+        # If self.depth is 0 or the game ended, eval the board
         if not all([val1, val2, depth]):
             if maximize:
-                print("val1-val2:",val1, val2, val1-val2)
                 return val1 - val2
             else:
-                print("val2-val1:", val1, val2, val2-val1)
                 return val2 - val1
         # If this is the maximizing player...
         if maximize:
