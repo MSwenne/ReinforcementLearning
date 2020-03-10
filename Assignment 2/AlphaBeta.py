@@ -33,7 +33,7 @@ class AlphaBeta:
             board.place(move, color)
             # If this made a path from border to border, return
             if self.dijkstra(board,board.get_start_border(color),color) == 0:
-                return
+                return board
             # ...do alpha-beta search...
             value = self.alpha_beta(board, self.depth, -np.inf, np.inf, enemy, True)
             # ...and undo the move again
@@ -48,10 +48,6 @@ class AlphaBeta:
             best_move = move
         # Place the best_move
         board.place(best_move, color)
-        if board:
-            pass
-        else:
-            print("Alpha-Beta")
         return board
 
         

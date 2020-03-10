@@ -47,9 +47,7 @@ class Play():
                 # Generate a move for the bot
                 board = self.p2.makeMove(board, color[turn])
             # Print the board after every move
-            if board:
-                pass
-            else:
+            if not board:
                 print("outside")
             board.print()
             # Switch turns

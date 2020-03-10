@@ -43,33 +43,30 @@ class MCTS:
                 child.updateState(result)
                 child = child.getParent()
             child.updateState(result)
-        winner = self.findBestUCT(root)
+        winner = self.findBestUCT(root, max)
         winner = winner.getBoard()
-        if winner:
-            pass
-        else:
-            print("MCTS")
-        # self.delete(root)
+        self.delete(root)
         return winner
 
     def selectPromising(self, root):
         curr = root
+        minimax = [min,max]
+        maximize = True
         while len(curr.getBoard().getMoveList(curr.getColor())) == len(curr.getChildren()):
             if curr.getBoard().is_game_over():
                 return curr
-            curr = self.findBestUCT(curr)
+            curr = self.findBestUCT(curr,minimax[int(maximize)])
+            maximize = not maximize
         return curr
 
-    def findBestUCT(self, curr):
+    def findBestUCT(self, curr, minimax):
         UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
-        print(len(UCTs))
-        if len(UCTs) == 0:
-            curr.getBoard().print()
-        return max(UCTs, key = itemgetter(0))[1]
+        # states = [(self.UCT(child),child.getState()) for child in curr.getChildren()]
+        return minimax(UCTs, key = itemgetter(0))[1]
 
     def UCT(self, curr):
         win, visit = curr.getState()
-        return win / visit - self.Cp * np.log(self.visit / visit)
+        return win / visit + self.Cp * np.sqrt(np.log(self.visit) / visit)
 
     def expand(self,curr):
         board = copy.deepcopy(curr.getBoard())
