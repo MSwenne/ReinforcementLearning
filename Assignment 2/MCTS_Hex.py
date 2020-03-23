@@ -24,7 +24,6 @@ class MCTS:
     def __init__(self, Cp, itermax):
         self.Cp = Cp
         self.itermax = itermax
-        self.visit = 0
 
     def makeMove(self, board, color):
         root = Node(board, color, None)
@@ -33,11 +32,12 @@ class MCTS:
             # Selection
             curr = self.selectPromising(root)
             # Expansion
-            if not curr.getBoard().is_game_over():
+            if curr.getBoard().is_game_over():
+                child = curr
+            else:
                 child = self.expand(curr)
             # Simulation
             result = self.playout(child)
-            self.visit += 1
             # Backpropagation
             while child.getParent() != None:
                 child.updateState(result)
@@ -66,7 +66,8 @@ class MCTS:
 
     def UCT(self, curr):
         win, visit = curr.getState()
-        return win / visit + self.Cp * np.sqrt(np.log(self.visit) / visit)
+        _, parent_visit = curr.getParent().getState()
+        return win / visit + self.Cp * np.sqrt(np.log(parent_visit) / visit)
 
     def expand(self,curr):
         board = copy.deepcopy(curr.getBoard())
