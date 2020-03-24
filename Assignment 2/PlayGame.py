@@ -38,7 +38,7 @@ class Play():
                 if self.p1 == None:
                     print("make a move...")
                     # ... let him make a move
-                    self.makeMove(board, color[turn])
+                    board = self.makeMove(board, color[turn])
                 else:
                     board = self.p1.makeMove(board, color[turn])
             # If it is the turn of the bot...
@@ -112,7 +112,7 @@ class Play():
                 if(board.is_empty((x,y))):
                     # If it's empty, place your color
                     board.place((x,y), color)
-                    return True
+                    return board
                 else:
                     print("Place already taken!")
 
