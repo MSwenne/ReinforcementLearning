@@ -60,7 +60,7 @@ if __name__ == "__main__":
             if turn:
                 print(" - MCTS starts       - ", end="")
             else:
-                print(" - ALpha-Beta starts - ", end="")
+                print(" - Alpha-Beta starts - ", end="")
             # Setup board, depth and heuristic
             board = HexBoard(size)
             # While the game is not over
