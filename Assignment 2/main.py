@@ -45,9 +45,9 @@ if __name__ == "__main__":
         color = [HexBoard.RED, HexBoard.BLUE]
         # Initialise the number of rounds and board size
         print("Hex game: how big is the board? (minimal 2x2 and maximal 10x10)")
-        size = int(get_input("size = ", [str(i) for i in range(2,11)], ""))
+        size = int(get_input("board size = ", [str(i) for i in range(2,11)], ""))
         rounds = 10
-        print("board size =", size," : ",rounds,"rounds")
+        print(srounds,"rounds")
         print("MCTS vs. Alpha-Beta")
         # Initialise ratings
         r1 = Rating()
@@ -58,7 +58,7 @@ if __name__ == "__main__":
             print("round:", round+1, end="")
             # Switch starting player each round
             turn = 0 if round % 2 == 0 else 1
-            if turn:
+            if not turn:
                 print(" - MCTS starts       - ", end="")
             else:
                 print(" - Alpha-Beta starts - ", end="")
