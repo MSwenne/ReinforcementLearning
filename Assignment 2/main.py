@@ -43,9 +43,10 @@ if __name__ == "__main__":
         bot_AB = AlphaBeta(depth=3)
         bots = [bot_MCTS, bot_AB]
         color = [HexBoard.RED, HexBoard.BLUE]
-        # Initialise the number of bots (max 3), rounds and board size
+        # Initialise the number of rounds and board size
+        print("Hex game: how big is the board? (minimal 2x2 and maximal 10x10)")
+        size = int(get_input("size = ", [str(i) for i in range(2,11)], ""))
         rounds = 10
-        size = 3
         print("board size =", size," : ",rounds,"rounds")
         print("MCTS vs. Alpha-Beta")
         # Initialise ratings
