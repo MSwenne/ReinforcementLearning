@@ -7,7 +7,7 @@
 #           Bartek Piaskowski   S2687194                            #
 #           Martijn Swenne      S1923889                            #
 #                                                                   #
-# Last edited: 6 March 2020                                         #
+# Last edited: 24 March 2020                                        #
 # All rights reserved                                               #
 #                                                                   #
 #####################################################################
@@ -41,58 +41,46 @@ if __name__ == "__main__":
     if part == 'E' or part == 'e':
         bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000)
         bot_AB = AlphaBeta(depth=3)
-        bots[]
+        bots = [bot_MCTS, bot_AB]
+        color = [HexBoard.RED, HexBoard.BLUE]
         # Initialise the number of bots (max 3), rounds and board size
         rounds = 10
         size = 3
-        print("board size: ", size," : ",rounds," rounds.")
-        # Initialise color, printing params, depths and heuristics
-        color = [HexBoard.BLUE, HexBoard.RED]
-        heuristics = [[False, True], [False, True], [True, True]]
+        print("board size =", size," : ",rounds,"rounds")
+        print("MCTS vs. Alpha-Beta")
         # Initialise ratings
         r1 = Rating()
         r2 = Rating()
         print(r1, r2)
         # For each round:
         for round in range(rounds):
-            print("round:", round+1, end=" ")
+            print("round:", round+1, end="")
             # Switch starting player each round
             turn = 0 if round % 2 == 0 else 1
             if turn:
-                print("MCTS starts")
+                print(" - MCTS starts       - ", end="")
             else:
-                print("ALpha-Beta starts")
+                print(" - ALpha-Beta starts - ", end="")
             # Setup board, depth and heuristic
             board = HexBoard(size)
             # While the game is not over
             while(not board.is_game_over()):
-                # Make a ove using alpha_beta search and a random or Dijkstra eval
-                bot_MCTS.mo(board, color[turn], depth[turn], heuristic[turn])
+                # Make a move using corresponding bot
+                bots[turn].makeMove(board, color[turn])
                 # Switch turns
                 turn = int(not turn)
             # Print board and winner after game ends
-            board.print()
-            if board.check_win(color[1]):
-                print("RED wins! ", )
+            if board.check_win(HexBoard.RED):
+                print("MCTS wins!")
             else:
-                print("BLUE wins! ", )
+                print("Alpha-Beta wins!")
             # Update ratings accordingly
-            if board.check_win(color[0]):
-                if i == 0:
-                    r1, r2 = rate_1vs1(r1, r2)
-                if i == 1:
-                    r1, r3 = rate_1vs1(r1, r3)
-                if i == 2:
-                    r2, r3 = rate_1vs1(r2, r3)
+            if board.check_win(HexBoard.RED):
+                r1, r2 = rate_1vs1(r1, r2)
             else:
-                if i == 0:
-                    r2, r1 = rate_1vs1(r2, r1)
-                if i == 1:
-                    r3, r1 = rate_1vs1(r3, r1)
-                if i == 2:
-                    r3, r2 = rate_1vs1(r3, r2)
+                r2, r1 = rate_1vs1(r2, r1)
             # Print new ratings and clean up board
-            print(r1, r2, r3)
+            print(r1, r2)
             del board
 
     if part == 'T' or part == 't':
