@@ -26,8 +26,9 @@ class MCTS:
         self.itermax = itermax
 
     def makeMove(self, board, color):
+        self.maximizing_color = color
         root = Node(board, color, None)
-        curr = time.time()
+        curr = None
         for _ in range(self.itermax):
             # Selection
             curr = self.selectPromising(root)
@@ -43,26 +44,24 @@ class MCTS:
                 child.updateState(result)
                 child = child.getParent()
             child.updateState(result)
-        winner = self.findBestUCT(root, max)
+        winner = self.findBestUCT(root)
         winner = winner.getBoard()
         self.delete(root)
         return winner
 
     def selectPromising(self, root):
         curr = root
-        minimax = [min,max]
-        maximize = True
-        while len(curr.getBoard().getMoveList(curr.getColor())) == len(curr.getChildren()):
+        if len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
             if curr.getBoard().is_game_over():
                 return curr
-            curr = self.findBestUCT(curr,minimax[int(maximize)])
-            maximize = not maximize
+            curr = self.findBestUCT(curr)
         return curr
 
-    def findBestUCT(self, curr, minimax):
+    def findBestUCT(self, curr):
         UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
         # states = [(self.UCT(child),child.getState()) for child in curr.getChildren()]
-        return minimax(UCTs, key = itemgetter(0))[1]
+        return max(UCTs, key = itemgetter(0))[1]
+        # return minimax(UCTs, key = itemgetter(0))[1]
 
     def UCT(self, curr):
         win, visit = curr.getState()
@@ -82,18 +81,22 @@ class MCTS:
     def playout(self, curr):
         board = curr.getBoard()
         player = curr.getColor()
-        win, color = self.recursivePlayout(board, player)
-        return int((win and color == player) or ((not win) and (color != player)))
+        tmpBoard = copy.deepcopy(board)
+        win, color = self.recursivePlayout(tmpBoard, player)
+        if win and color == self.maximizing_color:
+            return 1
+        return -1
+        # return int((win and color == player) or ((not win) and (color != player)))
 
     def recursivePlayout(self, board, color):
         if board.is_game_over():
-            return board.check_win(color), color
+            return board.check_win(board.get_opposite_color(color)), board.get_opposite_color(color)
         moves = board.getMoveList(color)
         move = moves[random.randint(0,len(moves)-1)]
         board.place(move, color)
-        win, color = self.recursivePlayout(board, board.get_opposite_color(color))
-        board.unplace(move)
-        return win, color
+        return self.recursivePlayout(board, board.get_opposite_color(color))
+        # board.unplace(move)
+        # return win, color
 
     def delete(self, root):
         for child in root.getChildren():
