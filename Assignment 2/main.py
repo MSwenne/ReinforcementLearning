@@ -93,3 +93,51 @@ def part2():
         print(r1, r2)
         del board
 
+def part3():
+    # Initialise the number of rounds, board size, Cp and iterations
+    rounds = 25
+    size = 4
+    Cp = [float(i)/10 for i in range(1,21)]
+    iterations = [i for i in range(1000, 20000, 1000)]
+    bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
+    bot_AB = AlphaBeta(depth=3, max_time=max_time)
+    bots = [bot_MCTS, bot_AB]
+    color = [HexBoard.RED, HexBoard.BLUE]
+    rounds = 10
+    print(rounds,"rounds")
+    print("MCTS vs. Alpha-Beta")
+    # Initialise ratings
+    r1 = Rating()
+    r2 = Rating()
+    print(r1, r2)
+    # For each round:
+    for round in range(rounds):
+        print("round:", round+1, end="")
+        # Switch starting player each round
+        turn = 0 if round % 2 == 0 else 1
+        if not turn:
+            print(" - MCTS starts       - ", end="")
+        else:
+            print(" - Alpha-Beta starts - ", end="")
+        # Setup board, depth and heuristic
+        board = HexBoard(size)
+        # While the game is not over
+        while(not board.is_game_over()):
+            # Make a move using corresponding bot
+            bots[turn].makeMove(board, color[turn])
+            # Switch turns
+            turn = int(not turn)
+        # Print board and winner after game ends
+        if board.check_win(HexBoard.RED):
+            print("MCTS wins!")
+        else:
+            print("Alpha-Beta wins!")
+        # Update ratings accordingly
+        if board.check_win(HexBoard.RED):
+            r1, r2 = rate_1vs1(r1, r2)
+        else:
+            r2, r1 = rate_1vs1(r2, r1)
+        # Print new ratings and clean up board
+        print(r1, r2)
+        del board
+
