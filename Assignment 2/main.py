@@ -21,7 +21,7 @@ from PlayGame import Play
 from utils import get_input
 import numpy as np
 
-max_time = 0.1
+max_time = 1
 
 def part1():
     ans = get_input("(H)uman vs. MCTS or (A)lpha-Beta vs. MCTS?", ['H', 'A', 'h', 'a'])
@@ -66,7 +66,7 @@ def part2():
         # While the game is not over
         while(not board.is_game_over()):
             # Make a move using corresponding bot
-            bots[turn].makeMove(board, color[turn])
+            board = bots[turn].makeMove(board, color[turn])
             # Switch turns
             turn = int(not turn)
         # Print board and winner after game ends
