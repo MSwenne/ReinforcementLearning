@@ -91,6 +91,8 @@ def part3():
     iterations = [i for i in range(1000, 20000, 1000)]
     results = []
     bot_AB = AlphaBeta(max_time=max_time)
+    color = [HexBoard.RED, HexBoard.BLUE]
+    bots = [None, bot_AB]
 
     print("MCTS vs. Alpha-Beta")
     print(rounds,"rounds")
@@ -99,9 +101,7 @@ def part3():
     print("Iteration values = ", iterations)
     for cp in cps:
         for iteration in iterations:
-            bot_MCTS = MCTS(Cp=cp, itermax=iteration, max_time=max_time)
-            bots = [bot_MCTS, bot_AB]
-            color = [HexBoard.RED, HexBoard.BLUE]
+            bots[0] = MCTS(Cp=cp, itermax=iteration, max_time=max_time)
             # Initialise ratings
             r1 = Rating()
             r2 = Rating()
