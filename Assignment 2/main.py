@@ -16,7 +16,7 @@
 from trueskill import Rating, quality_1vs1, rate_1vs1
 from hex_skeleton import HexBoard
 from AlphaBeta import AlphaBeta
-from MCTS_Hex import MCTS
+from MCTS_Hex_pseudo import MCTS
 from PlayGame import Play
 from utils import get_input
 import numpy as np
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         print("Hex game: how big is the board? (minimal 2x2 and maximal 10x10)")
         size = int(get_input("board size = ", [str(i) for i in range(2,11)], ""))
         rounds = 10
-        print(srounds,"rounds")
+        print(rounds,"rounds")
         print("MCTS vs. Alpha-Beta")
         # Initialise ratings
         r1 = Rating()

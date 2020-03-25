@@ -51,7 +51,7 @@ class MCTS:
 
     def selectPromising(self, root):
         curr = root
-        if len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
+        while len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
             if curr.getBoard().is_game_over():
                 return curr
             curr = self.findBestUCT(curr)
@@ -85,7 +85,7 @@ class MCTS:
         win, color = self.recursivePlayout(tmpBoard, player)
         if win and color == self.maximizing_color:
             return 1
-        return -1
+        return 0
         # return int((win and color == player) or ((not win) and (color != player)))
 
     def recursivePlayout(self, board, color):
