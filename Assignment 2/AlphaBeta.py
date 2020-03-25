@@ -16,13 +16,33 @@ from hex_skeleton import HexBoard
 import numpy as np
 import random
 import heapq
+import time
+import copy
 
 class AlphaBeta:
-    def __init__(self, depth):
+    def __init__(self, depth, max_time):
+        self.table = []
         self.depth = depth
+        self.max_time = max_time
 
     # Makes a move that uses alpha-beta search and a random eval
     def makeMove(self, board, color):
+        curr_time = time.time()
+        depth = 1
+        # While max time is not exeeded or maximum depth has been reached...
+        while time.time() - curr_time < self.max_time and self.depth < board.size**2:
+            # ...do pre-Alpha Beta, which checks all moves
+            best_move, end = self.pre_alpha_beta(board, color, depth)
+            # If a move ended the game during pre-Alpha Beta, do nothing
+            if end:
+                break
+            # Increment depth
+            depth += 1
+        # Place the best_move
+        board.place(best_move, color)
+        return board
+    
+    def pre_alpha_beta(self, board, color, depth):
         # Initialise the enemy, best_value and best_move
         enemy = board.get_opposite_color(color)
         best_value = np.inf
@@ -33,7 +53,7 @@ class AlphaBeta:
             board.place(move, color)
             # If this made a path from border to border, return
             if self.dijkstra(board,board.get_start_border(color),color) == 0:
-                return board
+                return move, True
             # ...do alpha-beta search...
             value = self.alpha_beta(board, self.depth, -np.inf, np.inf, enemy, True)
             # ...and undo the move again
@@ -47,12 +67,16 @@ class AlphaBeta:
         if best_move == 0:
             best_move = move
         # Place the best_move
-        board.place(best_move, color)
-        return board
+        return best_move, False
 
-        
+
     # Does n-self.depth alpha_beta search on a board with a Dijkstra eval
     def alpha_beta(self, board, depth, alpha, beta, color, maximize):
+        # Check if the current board is in the Table
+        value = self.getTranspositionTable(depth, board)
+        # If it is stored in the Table return the value from the Table
+        if value:
+            return value
         # Initialise enemy, val1 and val2
         enemy = board.get_opposite_color(color)
         val1 = self.dijkstra(board,board.get_start_border(enemy),enemy)
@@ -97,6 +121,7 @@ class AlphaBeta:
                 # If alpha is greater or equal to beta, break
                 if (alpha >= beta):
                     break
+        self.storeTranspositionTable(depth, board, value)
         # Return the eval value
         return value
 
@@ -175,3 +200,22 @@ class AlphaBeta:
             return 2
         # If exactly one coordinate is empty, distance is 1
         return 1
+
+    # Stores a board with corresponding value and depth in the Transposition Table
+    def storeTranspositionTable(self, depth, board, value):
+        # Append the (board, depth, value)-triple to the Table
+        self.table.append((copy.deepcopy(board), depth, value))
+
+    # Checks if the current board is in the Transposition Table
+    def getTranspositionTable(self, depth, board):
+        # For each stored board...
+        for storedBoard, storedDepth, storedValue in self.table:
+            # ...check if the current depth is between 0 and the stored depth
+            if(depth > 0 and depth <= storedDepth):
+                # check for board comparison            
+                if storedBoard == board:
+                    # If the board is found, return the stored value
+                    return storedValue
+        # If the board is not in the Table, return None
+        return None
+

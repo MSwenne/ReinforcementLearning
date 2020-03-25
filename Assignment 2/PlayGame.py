@@ -43,7 +43,7 @@ class Play():
                     # ... let him make a move
                     self.makeMove(color[turn])
                 else:
-                    self.board = self.p1.makeMove(color[turn])
+                    self.board = self.p1.makeMove(self.board, color[turn])
             # If it is the turn of the bot...
             else:
                 print("enemy's turn:")
