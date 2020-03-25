@@ -21,15 +21,17 @@ import time
 import copy
 
 class MCTS:
-    def __init__(self, Cp, itermax):
+    def __init__(self, Cp, itermax, max_time):
         self.Cp = Cp
         self.itermax = itermax
+        self.max_time = max_time
 
     def makeMove(self, rootboard, color):
         root = Node(None, None, color, rootboard.getMoveList(color))
         self.maximizing_color = color
-
-        for _ in range(self.itermax):
+        curr_time = time.time()
+        it = 0
+        while it < self.itermax and time.time() - curr_time < self.max_time:
             curr = root
             board = copy.deepcopy(rootboard)
             # Selection
@@ -51,6 +53,7 @@ class MCTS:
                 curr.updateState(int(board.check_win(self.maximizing_color)))
                 curr = curr.parent
             del board
+            it += 1
         winner = self.findBestUCT(root)
         rootboard.place(winner.move, self.maximizing_color)
         return rootboard

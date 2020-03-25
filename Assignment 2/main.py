@@ -25,13 +25,14 @@ if __name__ == "__main__":
     print("Which part of the assignment would you like to see?")
     part = get_input("(M)CTS Hex, (E)xperiment, (T)une", ['M', 'E', 'T', 'm', 'e', 't'])
     if part == 'M' or part == 'm':
-        part2 = get_input("(H)uman vs. MCTS or (M)inimax vs. MCTS?", ['H', 'M', 'h', 'm'])
-        bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000)
-        bot_AB = AlphaBeta(depth=3)
+        part2 = get_input("(H)uman vs. MCTS or (A)lpha-Beta vs. MCTS?", ['H', 'M', 'h', 'm'])
+        max_time = 0.1
+        bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
+        bot_AB = AlphaBeta(depth=3, max_time=max_time)
 
         if part2 == 'H' or part2 == 'h':
             game = Play(player1=None, player2=bot_MCTS)
-        if part2 == 'M' or part2 == 'm':
+        if part2 == 'A' or part2 == 'a':
             starter = get_input("Who starts? (A)lpha-Beta or (M)CTS?", ['A', 'M', 'a', 'm'])
             p1 = bot_AB if starter == 'A' or starter == 'a' else bot_MCTS
             p2 = bot_MCTS if starter == 'A' or starter == 'a' else bot_AB
