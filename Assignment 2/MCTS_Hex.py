@@ -21,18 +21,15 @@ import time
 import copy
 
 class MCTS:
-    def __init__(self, Cp, itermax, max_time):
+    def __init__(self, Cp, itermax):
         self.Cp = Cp
         self.itermax = itermax
-        self.max_time = max_time
 
     def makeMove(self, board, color):
         self.maximizing_color = color
         root = Node(board, color, None)
         curr = None
-        curr_time = time.time()
-        it = 0
-        while it < self.itermax and time.time() - curr_time < self.max_time:
+        for _ in range(self.itermax):
             # Selection
             curr = self.selectPromising(root)
             # Expansion
@@ -46,20 +43,9 @@ class MCTS:
             while child != None:
                 child.updateState(result)
                 child = child.getParent()
-<<<<<<< Updated upstream
-            child.updateState(result)
-            it += 1
-        winner = self.findBestUCT(root)
-=======
-            # child.updateState(result)
-        tempo = self.findBestUCT(root)
-        
+
         winner = self.getMostVisited(root)
-        if tempo != winner:
-            print('THIS WAS WRONG !!!')
->>>>>>> Stashed changes
         winner = winner.getBoard()
-        # print('winner', winner)
         self.delete(root)
         return winner
 
@@ -70,11 +56,6 @@ class MCTS:
     def selectPromising(self, root):
         curr = root
         while len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
-<<<<<<< Updated upstream
-=======
-            # print('len(curr.getBoard().getMoveList(curr.getColor())): ', len(curr.getBoard().getMoveList(curr.getColor())))
-            # print('len(curr.getChildren()): ', len(curr.getChildren()))
->>>>>>> Stashed changes
             if curr.getBoard().is_game_over():
                 return curr
             curr = self.findBestUCT(curr)
@@ -82,9 +63,7 @@ class MCTS:
 
     def findBestUCT(self, curr):
         UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
-        # states = [(self.UCT(child),child.getState()) for child in curr.getChildren()]
         return max(UCTs, key = itemgetter(0))[1]
-        # return minimax(UCTs, key = itemgetter(0))[1]
 
     def UCT(self, curr):
         win, visit = curr.getState()
@@ -108,8 +87,7 @@ class MCTS:
         win, color = self.recursivePlayout(tmpBoard, player)
         if win and color == self.maximizing_color:
             return 1
-        return 0
-        # return int((win and color == player) or ((not win) and (color != player)))
+        return -1
 
     def recursivePlayout(self, board, color):
         if board.is_game_over():
@@ -118,8 +96,6 @@ class MCTS:
         move = moves[random.randint(0,len(moves)-1)]
         board.place(move, color)
         return self.recursivePlayout(board, board.get_opposite_color(color))
-        # board.unplace(move)
-        # return win, color
 
     def delete(self, root):
         for child in root.getChildren():
