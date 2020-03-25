@@ -23,20 +23,10 @@ import numpy as np
 
 max_time = 0.1
 
-if __name__ == "__main__":
-    print("Which part of the assignment would you like to see?")
-    ans = get_input("(M)CTS Hex, (E)xperiment, (T)une", ['M', 'E', 'T', 'm', 'e', 't'])
-    if ans == 'M' or ans == 'm':
-        part1()
-    if ans == 'E' or ans == 'e':
-        part2()
-    if ans == 'T' or ans == 't':
-        pass
-
 def part1():
     ans = get_input("(H)uman vs. MCTS or (A)lpha-Beta vs. MCTS?", ['H', 'A', 'h', 'a'])
     bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
-    bot_AB = AlphaBeta(depth=3, max_time=max_time)
+    bot_AB = AlphaBeta(max_time=max_time)
 
     if ans == 'H' or ans == 'h':
         game = Play(player1=None, player2=bot_MCTS)
@@ -49,7 +39,7 @@ def part1():
 
 def part2():
     bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
-    bot_AB = AlphaBeta(depth=3, max_time=max_time)
+    bot_AB = AlphaBeta(max_time=max_time)
     bots = [bot_MCTS, bot_AB]
     color = [HexBoard.RED, HexBoard.BLUE]
     # Initialise the number of rounds and board size
@@ -97,47 +87,50 @@ def part3():
     # Initialise the number of rounds, board size, Cp and iterations
     rounds = 25
     size = 4
-    Cp = [float(i)/10 for i in range(1,21)]
+    cps = [float(i)/10 for i in range(1,21)]
     iterations = [i for i in range(1000, 20000, 1000)]
-    bot_MCTS = MCTS(Cp=Cp, itermax=iterations, max_time=max_time)
-    bot_AB = AlphaBeta(depth=3, max_time=max_time)
-    bots = [bot_MCTS, bot_AB]
-    color = [HexBoard.RED, HexBoard.BLUE]
-    rounds = 10
-    print(rounds,"rounds")
-    print("MCTS vs. Alpha-Beta")
-    # Initialise ratings
-    r1 = Rating()
-    r2 = Rating()
-    print(r1, r2)
-    # For each round:
-    for round in range(rounds):
-        print("round:", round+1, end="")
-        # Switch starting player each round
-        turn = 0 if round % 2 == 0 else 1
-        if not turn:
-            print(" - MCTS starts       - ", end="")
-        else:
-            print(" - Alpha-Beta starts - ", end="")
-        # Setup board, depth and heuristic
-        board = HexBoard(size)
-        # While the game is not over
-        while(not board.is_game_over()):
-            # Make a move using corresponding bot
-            bots[turn].makeMove(board, color[turn])
-            # Switch turns
-            turn = int(not turn)
-        # Print board and winner after game ends
-        if board.check_win(HexBoard.RED):
-            print("MCTS wins!")
-        else:
-            print("Alpha-Beta wins!")
-        # Update ratings accordingly
-        if board.check_win(HexBoard.RED):
-            r1, r2 = rate_1vs1(r1, r2)
-        else:
-            r2, r1 = rate_1vs1(r2, r1)
-        # Print new ratings and clean up board
-        print(r1, r2)
-        del board
+    results = []
+    bot_AB = AlphaBeta(max_time=max_time)
 
+    print("MCTS vs. Alpha-Beta")
+    print(rounds,"rounds")
+    print("board size = ", size)
+    print("Cp values = ", cps)
+    print("Iteration values = ", iterations)
+    for cp in cps:
+        for iteration in iterations:
+            bot_MCTS = MCTS(Cp=cp, itermax=iteration, max_time=max_time)
+            bots = [bot_MCTS, bot_AB]
+            color = [HexBoard.RED, HexBoard.BLUE]
+            # Initialise ratings
+            r1 = Rating()
+            r2 = Rating()
+            # For each round:
+            for round in range(rounds):
+                # Switch starting player each round
+                turn = 0 if round % 2 == 0 else 1
+                # Setup board, depth and heuristic
+                board = HexBoard(size)
+                while(not board.is_game_over()):
+                    bots[turn].makeMove(board, color[turn])
+                    turn = int(not turn)
+                # Update ratings accordingly
+                if board.check_win(HexBoard.RED):
+                    r1, r2 = rate_1vs1(r1, r2)
+                else:
+                    r2, r1 = rate_1vs1(r2, r1)
+                del board
+            print("Cp=", cp, " - iterations=",iteration," - MCTS trueskill rating: ", r1)
+            results.append((cp,iteration,r1))
+    print("\n#########################################################\n")
+    print("results:\n", results)
+
+if __name__ == "__main__":
+    print("Which part of the assignment would you like to see?")
+    ans = get_input("(M)CTS Hex, (E)xperiment, (T)une", ['M', 'E', 'T', 'm', 'e', 't'])
+    if ans == 'M' or ans == 'm':
+        part1()
+    if ans == 'E' or ans == 'e':
+        part2()
+    if ans == 'T' or ans == 't':
+        part3()
