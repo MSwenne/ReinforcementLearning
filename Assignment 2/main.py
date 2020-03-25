@@ -21,12 +21,14 @@ from PlayGame import Play
 from utils import get_input
 import numpy as np
 
-max_time = 1
+MAX_TIME = 0.2
+CP = np.sqrt(4)
+ITERMAX = 10000
 
 def part1():
     ans = get_input("(H)uman vs. MCTS or (A)lpha-Beta vs. MCTS?", ['H', 'A', 'h', 'a'])
-    bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
-    bot_AB = AlphaBeta(max_time=max_time)
+    bot_MCTS = MCTS(Cp=CP, itermax=ITERMAX, max_time=MAX_TIME)
+    bot_AB = AlphaBeta(max_time=MAX_TIME)
 
     if ans == 'H' or ans == 'h':
         game = Play(player1=None, player2=bot_MCTS)
@@ -38,8 +40,8 @@ def part1():
     game.play_game()
 
 def part2():
-    bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
-    bot_AB = AlphaBeta(max_time=max_time)
+    bot_MCTS = MCTS(Cp=CP, itermax=ITERMAX, max_time=MAX_TIME)
+    bot_AB = AlphaBeta(max_time=MAX_TIME)
     bots = [bot_MCTS, bot_AB]
     color = [HexBoard.RED, HexBoard.BLUE]
     # Initialise the number of rounds and board size
@@ -90,7 +92,7 @@ def part3():
     cps = [float(i)/10 for i in range(1,21)]
     iterations = [i for i in range(1000, 20000, 1000)]
     results = []
-    bot_AB = AlphaBeta(max_time=max_time)
+    bot_AB = AlphaBeta(max_time=MAX_TIME)
     color = [HexBoard.RED, HexBoard.BLUE]
     bots = [None, bot_AB]
 
@@ -101,7 +103,7 @@ def part3():
     print("Iteration values = ", iterations)
     for cp in cps:
         for iteration in iterations:
-            bots[0] = MCTS(Cp=cp, itermax=iteration, max_time=max_time)
+            bots[0] = MCTS(Cp=cp, itermax=iteration, max_time=MAX_TIME)
             # Initialise ratings
             r1 = Rating()
             r2 = Rating()
