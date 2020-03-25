@@ -37,7 +37,6 @@ def part1():
     ans = get_input("(H)uman vs. MCTS or (A)lpha-Beta vs. MCTS?", ['H', 'A', 'h', 'a'])
     bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
     bot_AB = AlphaBeta(depth=3, max_time=max_time)
-
     if ans == 'H' or ans == 'h':
         game = Play(player1=None, player2=bot_MCTS)
     if ans == 'A' or ans == 'a':
@@ -46,7 +45,6 @@ def part1():
         p2 = bot_MCTS if starter == 'A' or starter == 'a' else bot_AB
         game = Play(player1=p1, player2=p2)
     game.play_game()
-
 def part2():
     bot_MCTS = MCTS(Cp=np.sqrt(2), itermax=5000, max_time=max_time)
     bot_AB = AlphaBeta(depth=3, max_time=max_time)

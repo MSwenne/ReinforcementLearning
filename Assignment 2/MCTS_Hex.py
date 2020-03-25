@@ -43,19 +43,38 @@ class MCTS:
             # Simulation
             result = self.playout(child)
             # Backpropagation
-            while child.getParent() != None:
+            while child != None:
                 child.updateState(result)
                 child = child.getParent()
+<<<<<<< Updated upstream
             child.updateState(result)
             it += 1
         winner = self.findBestUCT(root)
+=======
+            # child.updateState(result)
+        tempo = self.findBestUCT(root)
+        
+        winner = self.getMostVisited(root)
+        if tempo != winner:
+            print('THIS WAS WRONG !!!')
+>>>>>>> Stashed changes
         winner = winner.getBoard()
+        # print('winner', winner)
         self.delete(root)
         return winner
+
+    def getMostVisited(self, root):
+        UCTs = [(child.state[1],child) for child in root.getChildren()]
+        return max(UCTs, key = itemgetter(0))[1]
 
     def selectPromising(self, root):
         curr = root
         while len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
+<<<<<<< Updated upstream
+=======
+            # print('len(curr.getBoard().getMoveList(curr.getColor())): ', len(curr.getBoard().getMoveList(curr.getColor())))
+            # print('len(curr.getChildren()): ', len(curr.getChildren()))
+>>>>>>> Stashed changes
             if curr.getBoard().is_game_over():
                 return curr
             curr = self.findBestUCT(curr)
