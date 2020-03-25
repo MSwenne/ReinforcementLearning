@@ -20,29 +20,28 @@ import time
 import copy
 
 class AlphaBeta:
-    def __init__(self, depth, max_time):
+    def __init__(self, max_time):
         self.table = []
-        self.depth = depth
         self.max_time = max_time
 
     # Makes a move that uses alpha-beta search and a random eval
     def makeMove(self, board, color):
         curr_time = time.time()
-        depth = 1
+        self.depth = 1
         # While max time is not exeeded or maximum depth has been reached...
         while time.time() - curr_time < self.max_time and self.depth < board.size**2:
             # ...do pre-Alpha Beta, which checks all moves
-            best_move, end = self.pre_alpha_beta(board, color, depth)
+            best_move, end = self.pre_alpha_beta(board, color)
             # If a move ended the game during pre-Alpha Beta, do nothing
             if end:
                 break
             # Increment depth
-            depth += 1
+            self.depth += 1
         # Place the best_move
         board.place(best_move, color)
         return board
     
-    def pre_alpha_beta(self, board, color, depth):
+    def pre_alpha_beta(self, board, color):
         # Initialise the enemy, best_value and best_move
         enemy = board.get_opposite_color(color)
         best_value = np.inf
