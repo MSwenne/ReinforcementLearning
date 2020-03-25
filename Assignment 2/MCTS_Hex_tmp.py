@@ -43,9 +43,14 @@ class MCTS:
             while child != None:
                 child.updateState(result)
                 child = child.getParent()
-
+            # child.updateState(result)
+        tempo = self.findBestUCT(root)
+        
         winner = self.getMostVisited(root)
+        if tempo != winner:
+            print('THIS WAS WRONG !!!')
         winner = winner.getBoard()
+        # print('winner', winner)
         self.delete(root)
         return winner
 
@@ -56,6 +61,8 @@ class MCTS:
     def selectPromising(self, root):
         curr = root
         while len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
+            # print('len(curr.getBoard().getMoveList(curr.getColor())): ', len(curr.getBoard().getMoveList(curr.getColor())))
+            # print('len(curr.getChildren()): ', len(curr.getChildren()))
             if curr.getBoard().is_game_over():
                 return curr
             curr = self.findBestUCT(curr)
@@ -63,7 +70,9 @@ class MCTS:
 
     def findBestUCT(self, curr):
         UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
+        # states = [(self.UCT(child),child.getState()) for child in curr.getChildren()]
         return max(UCTs, key = itemgetter(0))[1]
+        # return minimax(UCTs, key = itemgetter(0))[1]
 
     def UCT(self, curr):
         win, visit = curr.getState()
@@ -88,6 +97,7 @@ class MCTS:
         if win and color == self.maximizing_color:
             return 1
         return -1
+        # return int((win and color == player) or ((not win) and (color != player)))
 
     def recursivePlayout(self, board, color):
         if board.is_game_over():
@@ -96,6 +106,8 @@ class MCTS:
         move = moves[random.randint(0,len(moves)-1)]
         board.place(move, color)
         return self.recursivePlayout(board, board.get_opposite_color(color))
+        # board.unplace(move)
+        # return win, color
 
     def delete(self, root):
         for child in root.getChildren():
