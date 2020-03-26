@@ -11,7 +11,7 @@
 # All rights reserved                                               #
 #                                                                   #
 #####################################################################
-
+import concurrent.futures
 from hex_skeleton import HexBoard
 from operator import itemgetter 
 import numpy as np
@@ -28,10 +28,26 @@ class MCTS:
 
     def makeMove(self, board, color):
         self.maximizing_color = color
+        roots = []
+        for _ in range(200):
+            newBoard = copy.deepcopy(board)
+            roots.append(newBoard)
+
+        # For each of the tmp_roots we run in parallel the mcts process.
+        with concurrent.futures.ProcessPoolExecutor() as executor: 
+            results = [executor.submit(self.performMCTS, p_board, color) for p_board in roots]
+            all_searched = []
+            for f in concurrent.futures.as_completed(results):
+                all_searched.append(f.result())
+            winner = max(all_searched, key = itemgetter(0))[1]
+            return winner.getBoard()
+
+
+
+    def performMCTS(self, board, color):
         root = Node(board, color, None)
-        curr = None
-        curr_time = time.time()
         it = 0
+        curr_time = time.time()
         while it < self.itermax and time.time() - curr_time < self.max_time:
             # Selection
             curr = self.selectPromising(root)
@@ -40,22 +56,21 @@ class MCTS:
                 child = curr
             else:
                 child = self.expand(curr)
-            # Playout
+            # Simulation
             result = self.playout(child)
             # Backpropagation
             while child != None:
                 child.updateState(result)
                 child = child.getParent()
             it += 1
-
         winner = self.getMostVisited(root)
-        winner = winner.getBoard()
+        # winner = winner.getBoard()
         self.delete(root)
         return winner
 
     def getMostVisited(self, root):
         UCTs = [(child.state[1],child) for child in root.getChildren()]
-        return max(UCTs, key = itemgetter(0))[1]
+        return max(UCTs, key = itemgetter(0))
 
     def selectPromising(self, root):
         curr = root
