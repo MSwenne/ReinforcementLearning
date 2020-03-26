@@ -16,6 +16,7 @@
 from trueskill import Rating, quality_1vs1, rate_1vs1
 from hex_skeleton import HexBoard
 from AlphaBeta import AlphaBeta
+from operator import itemgetter 
 from MCTS_Hex import MCTS
 from PlayGame import Play
 from utils import get_input
@@ -82,8 +83,8 @@ def part2():
         else:
             r2, r1 = rate_1vs1(r2, r1)
         # Print new ratings and clean up board
-        print(r1, r2)
         del board
+    print(r1, r2)
 
 def part3():
     # Initialise the number of rounds, board size, Cp and iterations
@@ -122,10 +123,10 @@ def part3():
                 else:
                     r2, r1 = rate_1vs1(r2, r1)
                 del board
-            print("Cp=", cp, " - iterations=",iteration," - MCTS trueskill rating: ", r1)
-            results.append((cp,iteration,r1))
+            print("Cp =", cp, " - iterations =",iteration," - MCTS trueskill rating: ", r1.mu)
+            results.append((cp,iteration,r1.mu))
     print("\n#########################################################\n")
-    print("results:\n", results)
+    print("Best result:\n", max(results, key = itemgetter(2)))
 
 if __name__ == "__main__":
     print("Which part of the assignment would you like to see?")

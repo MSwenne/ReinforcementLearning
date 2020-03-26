@@ -40,7 +40,7 @@ class MCTS:
                 child = curr
             else:
                 child = self.expand(curr)
-            # Simulation
+            # Playout
             result = self.playout(child)
             # Backpropagation
             while child != None:
