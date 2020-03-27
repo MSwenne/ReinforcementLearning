@@ -19,6 +19,10 @@ import random
 import heapq
 import time
 import copy
+from utils import copy_board
+
+def gen_random(low, high):
+    return np.random.randint(low=0, high=high, size=1)[0]
 
 class MCTS:
     def __init__(self, Cp, itermax, max_time):
@@ -29,13 +33,13 @@ class MCTS:
     def makeMove(self, board, color):
         self.maximizing_color = color
         roots = []
-        for _ in range(200):
-            newBoard = copy.deepcopy(board)
-            roots.append(newBoard)
-
+        for _ in range(100):
+            newBoard = copy_board(board)
+            cp = self.Cp
+            roots.append((newBoard, cp))
         # For each of the tmp_roots we run in parallel the mcts process.
         with concurrent.futures.ProcessPoolExecutor() as executor: 
-            results = [executor.submit(self.performMCTS, p_board, color) for p_board in roots]
+            results = [executor.submit(self.performMCTS, p_board, color, cp) for (p_board, cp) in roots]
             all_searched = []
             for f in concurrent.futures.as_completed(results):
                 all_searched.append(f.result())
@@ -44,13 +48,15 @@ class MCTS:
 
 
 
-    def performMCTS(self, board, color):
+    def performMCTS(self, board, color, cp):
+    
         root = Node(board, color, None)
         it = 0
         curr_time = time.time()
         while it < self.itermax and time.time() - curr_time < self.max_time:
-            # Selection
-            curr = self.selectPromising(root)
+            # Selection 
+            curr = self.selectPromising(root, cp, it)
+            
             # Expansion
             if curr.getBoard().is_game_over():
                 child = curr
@@ -64,7 +70,6 @@ class MCTS:
                 child = child.getParent()
             it += 1
         winner = self.getMostVisited(root)
-        # winner = winner.getBoard()
         self.delete(root)
         return winner
 
@@ -72,25 +77,27 @@ class MCTS:
         UCTs = [(child.state[1],child) for child in root.getChildren()]
         return max(UCTs, key = itemgetter(0))
 
-    def selectPromising(self, root):
+    def selectPromising(self, root, cp, it):
         curr = root
         while len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
             if curr.getBoard().is_game_over():
                 return curr
-            curr = self.findBestUCT(curr)
+            curr = self.findBestUCT(curr, cp)
         return curr
 
-    def findBestUCT(self, curr):
-        UCTs = [(self.UCT(child),child) for child in curr.getChildren()]
-        return max(UCTs, key = itemgetter(0))[1]
 
-    def UCT(self, curr):
+    def findBestUCT(self, curr, cp):
+        UCTs = [(self.UCT(child, cp),child) for child in curr.getChildren()]
+        return max(UCTs, key = itemgetter(0))[1]
+        
+
+    def UCT(self, curr, cp):
         win, visit = curr.getState()
         _, parent_visit = curr.getParent().getState()
-        return win / visit + self.Cp * np.sqrt(np.log(parent_visit) / visit)
+        return (win / visit) + 2 * cp * np.sqrt(2* np.log(parent_visit) / visit)
 
     def expand(self,curr):
-        board = copy.deepcopy(curr.getBoard())
+        board = copy_board(curr.getBoard())
         color = curr.getColor()
         if(len(curr.getMoves()) != 0):
             board.place(curr.ExpandRandomMove(), color)
@@ -102,8 +109,7 @@ class MCTS:
     def playout(self, curr):
         board = curr.getBoard()
         player = curr.getColor()
-        tmpBoard = copy.deepcopy(board)
-        win, color = self.recursivePlayout(tmpBoard, player)
+        win, color = self.recursivePlayout(copy_board(board), player)
         if win and color == self.maximizing_color:
             return 1
         return -1
@@ -140,7 +146,7 @@ class Node:
         if len(self.moves) == 0:
             self.getBoard().print()
             return None
-        return self.moves.pop(random.randint(0,len(self.moves)-1))
+        return self.moves.pop(gen_random(0, len(self.moves)))
 
     def getColor(self):
         return self.color

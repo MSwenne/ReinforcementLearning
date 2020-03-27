@@ -22,6 +22,9 @@ class HexBoard:
         for x in range(board_size):
             for y in range (board_size):
                 self.board[x,y] = HexBoard.EMPTY
+    def set_board(self, board, game_over=False):
+        self.board = board
+        self.game_over = game_over
     def is_game_over(self):
         return self.game_over
     def is_empty(self, coordinates):

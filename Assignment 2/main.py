@@ -21,6 +21,7 @@ from MCTS_Hex import MCTS
 from PlayGame import Play
 from utils import get_input
 import numpy as np
+from tune import tune
 
 MAX_TIME = 0.2
 CP = np.sqrt(4)
@@ -87,46 +88,8 @@ def part2():
     print(r1, r2)
 
 def part3():
-    # Initialise the number of rounds, board size, Cp and iterations
-    rounds = 25
-    size = 4
-    cps = [float(i)/10 for i in range(1,21)]
-    iterations = [i for i in range(1000, 20000, 1000)]
-    results = []
-    bot_AB = AlphaBeta(max_time=MAX_TIME)
-    color = [HexBoard.RED, HexBoard.BLUE]
-    bots = [None, bot_AB]
-
-    print("MCTS vs. Alpha-Beta")
-    print(rounds,"rounds")
-    print("board size = ", size)
-    print("Cp values = ", cps)
-    print("Iteration values = ", iterations)
-    for cp in cps:
-        for iteration in iterations:
-            bots[0] = MCTS(Cp=cp, itermax=iteration, max_time=MAX_TIME)
-            # Initialise ratings
-            r1 = Rating()
-            r2 = Rating()
-            # For each round:
-            for round in range(rounds):
-                # Switch starting player each round
-                turn = 0 if round % 2 == 0 else 1
-                # Setup board, depth and heuristic
-                board = HexBoard(size)
-                while(not board.is_game_over()):
-                    bots[turn].makeMove(board, color[turn])
-                    turn = int(not turn)
-                # Update ratings accordingly
-                if board.check_win(HexBoard.RED):
-                    r1, r2 = rate_1vs1(r1, r2)
-                else:
-                    r2, r1 = rate_1vs1(r2, r1)
-                del board
-            print("Cp =", cp, " - iterations =",iteration," - MCTS trueskill rating: ", r1.mu)
-            results.append((cp,iteration,r1.mu))
+    tune()
     print("\n#########################################################\n")
-    print("Best result:\n", max(results, key = itemgetter(2)))
 
 if __name__ == "__main__":
     print("Which part of the assignment would you like to see?")

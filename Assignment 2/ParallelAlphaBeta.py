@@ -15,9 +15,11 @@
 from hex_skeleton import HexBoard
 import numpy as np
 import random
+from operator import itemgetter 
 import heapq
 import time
 import copy
+import concurrent.futures
 
 class AlphaBeta:
     def __init__(self, max_time):
@@ -43,31 +45,42 @@ class AlphaBeta:
     
     def pre_alpha_beta(self, board, color):
         # Initialise the enemy, best_value and best_move
-        enemy = board.get_opposite_color(color)
-        best_value = np.inf
         best_move = 0
         # For every possible move on the board...
-        for move in board.getMoveList(color):
-            # ...play this move...
-            board.place(move, color)
-            # If this made a path from border to border, return
-            if self.dijkstra(board,board.get_start_border(color),color) == 0:
-                return move, True
-            # ...do alpha-beta search...
-            value = self.alpha_beta(board, self.depth, -np.inf, np.inf, enemy, True)
-            # ...and undo the move again
-            board.unplace(move)
-            # If the value of the alpha-beta search is better that your current best_value...
-            if(value < best_value):
-                # ...update the best_value and the best_move
-                best_move = move
-                best_value = value
-        # If there is no best_move (it is still 0), just take the last viewed move
-        if best_move == 0:
-            best_move = move
-        # Place the best_move
-        return best_move, False
+        all_possible_moves = board.getMoveList(color)
+        boards = []
+        for move in all_possible_moves:
+            newBoard = copy.deepcopy(board)
+            boards.append((newBoard, move))
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            results = [executor.submit(self.parallel_task, p_board, move, color) for (p_board, move) in boards]
+            all_searched = []
+            for f in concurrent.futures.as_completed(results):
+                all_searched.append(f.result())
+            min_value = np.inf
+            best_move = all_possible_moves[0]
+            for (value, move) in all_searched:
+                if type(value) == type(True):
+                    return move, True
+                elif value < min_value:
+                    min_value = value
+                    best_move = move
+            return best_move, False
 
+
+    def parallel_task(self, board, move, color):
+        enemy = board.get_opposite_color(color)
+        # ...play th`is move...
+        board.place(move, color)
+        # If this made a path from border to border, return
+        if self.dijkstra(board,board.get_start_border(color),color) == 0:
+            return True, move
+        # ...do alpha-beta search...
+        value = self.alpha_beta(board, self.depth, -np.inf, np.inf, enemy, True)
+        # ...and undo the move again
+        board.unplace(move)
+        # If the value of the alpha-beta search is better that your current best_value...
+        return (value, move)
 
     # Does n-self.depth alpha_beta search on a board with a Dijkstra eval
     def alpha_beta(self, board, depth, alpha, beta, color, maximize):
@@ -217,3 +230,4 @@ class AlphaBeta:
                     return storedValue
         # If the board is not in the Table, return None
         return None
+
