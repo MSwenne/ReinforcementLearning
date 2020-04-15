@@ -12,10 +12,13 @@
 #                                                                   #
 #####################################################################
 
+
 import tensorflow as tf
 from tensorflow import keras
 from tqdm import tqdm
 from collections import deque
+from utils import update_scene
+from utils import plot_animation
 import numpy as np
 import random
 import gym
@@ -52,11 +55,12 @@ class Model:
             for _ in range(self.max_steps):
                 epsilon = max(1 - i / iterations, 0.01)
                 action = self.predict(obs, epsilon)
-                next_state, reward, done, _ = env.step(action)
-                self.replay_memory.append((obs, action, reward, next_state, done))
-                game_score += self.reward(obs, max_pos)
+                next_obs, reward, done, _ = env.step(action)
+                self.replay_memory.append((obs, next_obs, action, reward, done))
+                game_score += self.reward(next_obs, max_pos)
                 if done:
                     break
+                obs = next_obs
             if game_score > best_score:
                 best_weights = self.model.get_weights()
                 best_score = game_score
@@ -66,7 +70,7 @@ class Model:
 
     def predict(self, obs, epsilon=0):
         if np.random.rand() < epsilon:
-            return np.random.randint(2)
+            return np.random.randint(self.output_size)
         else:
             Q_values = self.model.predict(obs[np.newaxis])
             return np.argmax(Q_values[0])
@@ -76,15 +80,14 @@ class Model:
         return (1/(max_pos - pos)) * abs(vel)
 
     def training_step(self):
-        experiences = self.sample_experiences()
-        states, actions, rewards, next_states, dones = experiences
-        next_Q_values = self.model.predict(next_states)
+        obs, next_obs, actions, rewards, dones = self.sample_experiences()
+        next_Q_values = self.model.predict(next_obs)
         max_next_Q_values = np.max(next_Q_values, axis=1)
         target_Q_values = (rewards + (1 - dones) * self.discount_rate * max_next_Q_values)
         target_Q_values = target_Q_values.reshape(-1, 1)
         mask = tf.one_hot(actions, self.output_size)
         with tf.GradientTape() as tape:
-            all_Q_values = self.model(states)
+            all_Q_values = self.model(obs)
             Q_values = tf.reduce_sum(all_Q_values * mask, axis=1, keepdims=True)
             loss = tf.reduce_mean(self.loss(target_Q_values, Q_values))
         grads = tape.gradient(loss, self.model.trainable_variables)
@@ -93,20 +96,20 @@ class Model:
     def sample_experiences(self):
         indices = np.random.randint(len(self.replay_memory), size=self.batch_size)
         batch = [self.replay_memory[index] for index in indices]
-        states, actions, rewards, next_states, dones = [
-            np.array([experience[field_index] for experience in batch])
-            for field_index in range(5)]
-        return states, actions, rewards, next_states, dones
+        return [np.array([experience[i] for experience in batch]) for i in range(len(batch[0]))]
 
 if __name__ == "__main__":
     env = gym.make('MountainCar-v0')
     model = Model(env, env.observation_space.shape[0], int(env.action_space.n))
-    model.train(iterations=30)
+    model.train(iterations=100)
     obs = env.reset()
+    frames =[]
     for t in range(model.max_steps):
-        env.render()
         obs, _, done, _ = env.step(model.predict(obs))
         if done:
             print("Episode finished after {} timesteps".format(t+1))
             break
+        img = env.render(mode="rgb_array")
+        frames.append(img)
     env.close()
+    plot_animation(frames)

@@ -13,8 +13,8 @@ import tensorflow as tf
 # mpl.rc('xtick', labelsize=12)
 # mpl.rc('ytick', labelsize=12)
 
-# # To get smooth animations
-# import matplotlib.animation as animation
+# To get smooth animations
+import matplotlib.animation as animation
 # mpl.rc('animation', html='jshtml')
 
 # # Where to save the figures
@@ -43,19 +43,19 @@ import tensorflow as tf
 #     plt.axis("off")
 #     return img
 
-# def update_scene(num, frames, patch):
-#     patch.set_data(frames[num])
-#     return patch,
+def update_scene(num, frames, patch):
+    patch.set_data(frames[num])
+    return patch
 
-# def plot_animation(frames, repeat=False, interval=40):
-#     fig = plt.figure()
-#     patch = plt.imshow(frames[0])
-#     plt.axis('off')
-#     anim = animation.FuncAnimation(
-#         fig, update_scene, fargs=(frames, patch),
-#         frames=len(frames), repeat=repeat, interval=interval)
-#     plt.close()
-#     return anim
+def plot_animation(frames, repeat=False, interval=40):
+    fig = plt.figure()
+    patch = plt.imshow(frames[0])
+    plt.axis('off')
+    anim = animation.FuncAnimation(
+        fig, update_scene, fargs=(frames, patch),
+        frames=len(frames), repeat=repeat, interval=interval)
+    plt.close()
+    return anim
 
 batch_size = 32
 discount_rate = 0.95
@@ -157,4 +157,4 @@ for step in range(200):
     img = env.render(mode="rgb_array")
     frames.append(img)
 
-# plot_animation(frames)
+plot_animation(frames)
