@@ -20,11 +20,6 @@ import numpy as np
 import random
 import gym
 
-env = gym.make('Breakout-v0')
-env.reset()
-train_games = 100
-max_steps = 20000
-
 class Model:
     def __init__(self, input_size, output_size):
         self.input_size = input_size
@@ -39,7 +34,7 @@ class Model:
         model.compile(loss='mse', optimizer=Adam())
         return model
 
-    def train(self, iterations=1000):
+    def train(self, iterations=1000, max_steps=200):
         print("Training model:")
         for _ in tqdm(range(iterations)):
             for _ in range(max_steps):
@@ -52,9 +47,11 @@ class Model:
         pass
 
 if __name__ == "__main__":
+    env = gym.make('Breakout-v0')
+    env.reset()
     model = Model(np.array(env.observation_space.shape), int(env.action_space.n))
     model.train(iterations=1000)
-    for t in range(max_steps):
+    for t in range(2000):
         env.render()
         [observation, score, done, _] = env.step(model.predict(observation))
         if done:

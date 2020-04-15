@@ -18,7 +18,6 @@ from utils import get_input
 import numpy as np
 import gym
 
-env = gym.make('Breakout-v0')
 env.reset()
 train_games = 100
 max_steps = 20000
