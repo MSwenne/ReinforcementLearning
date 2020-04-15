@@ -45,10 +45,10 @@ class Model:
     def train(self, iterations=100):
         print("Training model:")
         max_pos = env.observation_space.high[0]
+        best_score = -np.inf
         for i in tqdm(range(iterations)):
             obs = env.reset()
             game_score = 0
-            best_score = -np.inf
             for _ in range(self.max_steps):
                 epsilon = max(1 - i / iterations, 0.01)
                 action = self.predict(obs, epsilon)
