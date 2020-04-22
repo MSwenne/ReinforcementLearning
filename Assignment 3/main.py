@@ -18,10 +18,6 @@ from utils import get_input
 import numpy as np
 import gym
 
-env.reset()
-train_games = 100
-max_steps = 20000
-
 if __name__ == "__main__":
     print("Which part of the assignment would you like to see?")
     ans = get_input("(M)ountain car or (B)reakout", ['M', 'B', 'm', 'b'])
@@ -31,10 +27,11 @@ if __name__ == "__main__":
     if ans == 'B' or ans == 'b':
         env = gym.make('Breakout-v0')
         model = Model_br(np.array(env.observation_space.shape), int(env.action_space.n))
-    model.train(iterations=1000)
-    for t in range(max_steps):
+    model.train(iterations=100)
+    obs = env.reset()
+    for t in range(model.max_steps):
+        obs, _, done, _ = env.step(model.predict(obs))
         env.render()
-        [observation, score, done, _] = env.step(env.action_space.sample())
         if done:
             print("Episode finished after {} timesteps".format(t+1))
             break
