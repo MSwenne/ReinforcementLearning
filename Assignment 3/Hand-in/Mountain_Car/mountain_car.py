@@ -19,6 +19,7 @@ from collections import deque
 import numpy as np
 import random
 import gym
+import sys
 import os
 
 class Model:
@@ -264,10 +265,50 @@ class Model:
         plt.show()
 
 if __name__ == '__main__':
+    # Parse input variables
+    episodes = 1000
+    playouts = 100
+    write = False
+    plot = False
+    for i, arg in enumerate(sys.argv):
+        if arg == '-w' or arg == '-W':
+            write = True
+        if arg == '-d' or arg == '-D':
+            plot = True
+        if arg == '-e' or arg == '-E':
+            if len(sys.argv) <= i+1:
+                print('invalid params!')
+                exit(-1)
+            try:
+                episodes = int(sys.argv[i+1])
+            except ValueError:
+                print('invalid params!')
+                exit(-1)
+            if not (episodes > 0 and episodes < 1_000_000):
+                print('invalid params!')
+                exit(-1)
+        if arg == '-p' or arg == '-P':
+            if len(sys.argv) <= i+1:
+                print('invalid params!')
+                exit(-1)
+            try:
+                playouts = int(sys.argv[i+1])
+            except ValueError:
+                print('invalid params!')
+                exit(-1)
+            if not (playouts > 0 and playouts <= 1_000_000):
+                print('invalid params!')
+                exit(-1)
+
+    # Make and train model
     model = Model(gym.make('MountainCar-v0'))
-    model.train(episodes=1000)
-    for _ in range(100):
+    model.train(episodes=episodes)
+    # Do playouts
+    for _ in range(playouts):
         model.play_one_game()
+    # Close up and report stats if needed
     model.env.close()
-    filename = model.write_data()
-    model.plot_fig(model.read_data(filename))
+    if write:
+        filename = model.write_data()
+    if plot:
+        model.plot_fig(model.read_data(filename))
