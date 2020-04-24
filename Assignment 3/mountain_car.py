@@ -14,13 +14,12 @@
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from matplotlib.lines import Line2D
 from tensorflow import keras
-from tqdm import tqdm
 from collections import deque
 import numpy as np
 import random
 import gym
+import os
 
 WIN_DATA = []
 SCORE_DATA = []
@@ -29,13 +28,6 @@ class Model:
     def __init__(self, env):
         self.env = env
         self.batch_size = 32
-        self.tensorboard = tf.keras.callbacks.TensorBoard(
-            log_dir='./my_tf_logs',
-            histogram_freq=0,
-            batch_size=self.batch_size,
-            write_graph=True,
-            write_grads=True
-        )
         self.iteration_loss = np.array([])
         self.total_loss = 0.0
         self.discount_rate = 0.99
@@ -57,7 +49,6 @@ class Model:
             keras.layers.Dense(self.output_size, activation='linear')
         ])
         model.compile(loss=self.loss, optimizer=self.optimizer)
-        self.tensorboard.set_model(model)
         return model
 
     def train(self, iterations=100):
@@ -85,24 +76,14 @@ class Model:
                 obs = next_obs
                 if done:
                     break
-            self.tensorboard.on_epoch_end(i, {
-                'game_score': rewardSum, 
-                'step': s, 
-                'all_actions': all_actions, 
-                'iteration_loss': np.mean(self.iteration_loss), 
-                'total_loss': self.total_loss 
-            })
             self.iteration_loss = np.array([])
             if s >= 199:
-                print('Failed to finish task in iteration {}/{}'.format(i,iterations))
-                WIN_DATA.append(False)
+                print('Failure in iteration {}/{}'.format(i+1,iterations))
             else:
-                print()
-                print('Success in iteration {}/{}, used {} steps!'.format(i, iterations, s))
-                WIN_DATA.append(True)
+                print('Success in iteration {}/{}, used {} steps!'.format(i+1, iterations, s))
+            WIN_DATA.append(t < 199)
             SCORE_DATA.append(rewardSum)
             self.target_model.set_weights(self.model.get_weights())
-            # print('\tnow epsilon is {}, the reward is {} maxPosition is {}'.format(round(epsilon,2), rewardSum, max_position))
 
     def predict(self, obs, epsilon=0):
         if np.random.rand(1) < epsilon:
@@ -131,21 +112,24 @@ class Model:
         self.model.fit(states, targets, epochs=1, verbose=0)
 
     def play_one_game(self):
-        # print()
+        print('\nChosen actions:')
         obs = self.env.reset().reshape(1,2)
         rewardSum = 0
         for t in range(self.max_steps):
             action = self.predict(obs)
-            # print(action,end=', ')
-            # if (t+1) % 50 == 0:
-            #     print()
+            print(action,end=', ')
+            if (t+1) % 50 == 0:
+                print()
             obs, reward, done, _ = self.env.step(action)
             rewardSum += reward
             obs = obs.reshape(1,2)
             self.env.render()
             if done:
-                print('\nEpisode finished after {} timesteps'.format(t+1))
                 break
+        if t >= 199:
+            print('Failed to reach flag in 200 steps.')
+        else:
+            print('Success, used {} steps!'.format(t))
         WIN_DATA.append(t < 199)
         SCORE_DATA.append(rewardSum)
 
@@ -158,38 +142,50 @@ class Model:
 if __name__ == '__main__':
     env = gym.make('MountainCar-v0')
     model = Model(env)
-    # model.train(iterations=10)
-    model.load_weights('./weights')
-    for _ in range(10):
+    model.train(iterations=1000)
+    # model.load_weights('./weights')
+    for _ in range(100):
         model.play_one_game()
     # model.save_weights('./weights')
     env.close()
 
-    f = open('./data.txt','w+')
-    f.write(str(WIN_DATA) + '\n')
+
+    if not os.path.exists('./datafiles'):
+        os.makedirs('./datafiles')
+    counter = 0
+    filename = './datafiles/data{}.txt'
+    while os.path.isfile(filename.format(counter)):
+        counter += 1
+    filename = filename.format(counter)
+    f = open(filename,'w+')
+    f.write(str(int(WIN_DATA)) + '\n')
     f.write(str(SCORE_DATA) + '\n')
     f.close()
+    print('Data written to {}.'.format(filename))
 
+    avg = [np.mean(SCORE_DATA[i:i+5]) for i in range(len(SCORE_DATA)-10)]
     lose = [i for i, x in enumerate(WIN_DATA) if not x]
     win = [i for i, x in enumerate(WIN_DATA) if x]
     score_lose = [i for i, x in enumerate(SCORE_DATA) if x <= -199]
     score_win = [i for i, x in enumerate(SCORE_DATA) if x > -199]
     fig,a =  plt.subplots(2,1)
+    fig.suptitle('Mountain Car DQN training', size=14)
     a[0].scatter(score_lose,[SCORE_DATA[i] for i in score_lose] , c='r', s=6)
     a[0].scatter(score_win,[SCORE_DATA[i] for i in score_win] , c='g', s=6)
-    a[0].plot([np.mean(SCORE_DATA)]*len(SCORE_DATA), c='b')
-    a[0].set_title('Scores')
+    a[0].plot(range(10,len(SCORE_DATA)), avg, c='b', label='mean')
+    a[0].set_title('Mountain Car DQN scores', size=12)
     a[1].scatter(lose,[WIN_DATA[i] for i in lose] , c='r', s=6)
     a[1].scatter(win,[WIN_DATA[i] for i in win] , c='g', s=6)
-    a[1].set_title('Wins')
+    a[1].set_title('Mountain Car DQN wins', size=12)
     plt.sca(a[0])
     plt.xticks(range(0,len(WIN_DATA),50),range(0,len(WIN_DATA),50))
     plt.yticks([0.0, -200.0], ["0","-200"])
-    plt.legend([Line2D([0], [0], color='b', lw=4, label='mean')])
+    plt.legend(framealpha=1, frameon=True, loc='upper right')
+    plt.ylabel('Score')
     plt.sca(a[1])
     plt.xticks(range(0,len(WIN_DATA),50),range(0,len(WIN_DATA),50))
     plt.yticks([1.0, 0.0], ["True","False"])
-    plt.ylabel('Score')
-    fig.tight_layout(pad=3.0)
+    plt.ylabel('Win')
+    fig.tight_layout(pad=4)
     plt.savefig('stats.png')
     plt.show()
