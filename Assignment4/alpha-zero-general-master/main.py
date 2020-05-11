@@ -3,8 +3,8 @@ import logging
 import coloredlogs
 
 from Coach import Coach
-from othello.OthelloGame import OthelloGame as Game
-from othello.keras.NNet import NNetWrapper as nn
+from hexGame.HexGame import HexGame as Game
+from hexGame.keras.NNet import NNetWrapper as nn
 from utils import *
 
 log = logging.getLogger(__name__)

@@ -19,7 +19,6 @@ class Board():
 
     def __init__(self, n):
         "Set up initial board configuration."
-
         self.n = n
         # Create the empty board array.
         self.pieces = [None]*self.n

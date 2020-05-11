@@ -53,11 +53,29 @@ class HexGame(Game):
     def getGameEnded(self, board, player):
         b = Board(self.n)
         b.pieces = np.copy(board)
-        for i in range(self.n):
-            move = (0,i) if player == 1 else (i,0)
-            if self.dijkstra(b, move, player) == 0:
-                return True
+        if self.dijkstra(b, b.get_start_border(player), player) == 0:
+            return True
         return False
+
+    def getCanonicalForm(self, board, player):
+        # return state if player==1, else return -state if player==-1
+        return player*board
+
+    def getSymmetries(self, board, pi):
+        # mirror, rotational
+        assert(len(pi) == self.n**2)  # 1 for pass
+        pi_board = np.reshape(pi, (self.n, self.n))
+        l = []
+
+        for i in range(1, 5):
+            for j in [True, False]:
+                newB = np.rot90(board, i)
+                newPi = np.rot90(pi_board, i)
+                if j:
+                    newB = np.fliplr(newB)
+                    newPi = np.fliplr(newPi)
+                l += [(newB, list(newPi.ravel()) + [pi[-1]])]
+        return l
 
     def stringRepresentation(self, board):
         return board.tostring()
@@ -71,15 +89,10 @@ class HexGame(Game):
         b = Board(self.n)
         b.pieces = np.copy(board)
         max_score = -np.inf
-        for i in range(self.n):
-            move = (0,i) if player == 1 else (i,0)
-            # dijkstra returns minimal number of moves to win
-            # turn into maximizing score by counting size minus moves to win
-            score = self.n - self.dijkstra(b, move, player)
-            if score > max_score:
-                max_score = score
-        return max_score
-
+        # dijkstra returns minimal number of moves to win
+        # turn into maximizing score by counting size minus moves to win
+        return self.n - self.dijkstra(b, b.get_start_border(player), player)
+ 
     # Performs the dijkstra algorithm on the current board with the current player
     # Returns the shortest path from border to border, or inf if there is no path
     def dijkstra(self, board, root, player):
@@ -89,8 +102,8 @@ class HexGame(Game):
         visited = []
         result = []
         # For all coordinates on the board...
-        for x in range(board.size):
-            for y in range(board.size):
+        for x in range(self.n):
+            for y in range(self.n):
                 # ...if it is not filled by the enemy...
                 if not (board[x][y] == -player):
                     # ...and if it is in the root...
@@ -127,7 +140,7 @@ class HexGame(Game):
                         # If v is on the border...
                         if board.border(player, v):
                             # If v is empty, add 1 to length
-                            if board.is_empty(v):
+                            if board[v] == 0:
                                 alt = alt + 1
                             # ...heappush v to the results
                             heapq.heappush(result, (alt,v))
@@ -136,6 +149,7 @@ class HexGame(Game):
                         # Heappush the new distance of v
                         heapq.heappush(Q,(alt,v))
         # After checking all nodes, if there is a path between borders...
+        # print(len(result))
         if len(result) != 0:
             # ...return the shortest path
             return (heapq.heappop(result)[0])/2
