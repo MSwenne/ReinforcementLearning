@@ -46,6 +46,9 @@ class HexGame(Game):
         b = Board(self.n)
         b.pieces = np.copy(board)
         legalMoves =  b.get_legal_moves(player)
+        if len(legalMoves)==0:
+            print('no valid moves')
+            return np.array(valids)
         for x, y in legalMoves:
             valids[self.n*x+y]=1
         return np.array(valids)
@@ -54,12 +57,17 @@ class HexGame(Game):
         b = Board(self.n)
         b.pieces = np.copy(board)
         if self.dijkstra(b, b.get_start_border(player), player) == 0:
-            return True
-        return False
+            return 1
+        if self.dijkstra(b, b.get_start_border(-player), -player) == 0:
+            return -1
+        return 0
 
     def getCanonicalForm(self, board, player):
         # return state if player==1, else return -state if player==-1
-        return player*board
+        if player == 1:
+            return board
+        else:
+            return np.fliplr(np.rot90(-1*board, axes=(1, 0)))
 
     def getSymmetries(self, board, pi):
         # mirror, rotational
@@ -67,14 +75,10 @@ class HexGame(Game):
         pi_board = np.reshape(pi, (self.n, self.n))
         l = []
 
-        for i in range(1, 5):
-            for j in [True, False]:
-                newB = np.rot90(board, i)
-                newPi = np.rot90(pi_board, i)
-                if j:
-                    newB = np.fliplr(newB)
-                    newPi = np.fliplr(newPi)
-                l += [(newB, list(newPi.ravel()) + [pi[-1]])]
+        for i in [0, 2]:
+            newB = np.rot90(board, i)
+            newPi = np.rot90(pi_board, i)
+            l += [(newB, list(newPi.ravel()))]
         return l
 
     def stringRepresentation(self, board):
@@ -88,7 +92,6 @@ class HexGame(Game):
     def getScore(self, board, player):
         b = Board(self.n)
         b.pieces = np.copy(board)
-        max_score = -np.inf
         # dijkstra returns minimal number of moves to win
         # turn into maximizing score by counting size minus moves to win
         return self.n - self.dijkstra(b, b.get_start_border(player), player)
