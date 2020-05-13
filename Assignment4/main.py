@@ -13,64 +13,71 @@
 #####################################################################
 
 
+from alpha-zero-general-master.hexGame.tensorflow.NNet import NNetWrapper as NNet
+from alpha-zero-general-master.hexGame.HexGame import Game
 from trueskill import Rating, quality_1vs1, rate_1vs1
-from hex_skeleton import HexBoard
 from ParallelAlphaBeta import AlphaBeta
 from operator import itemgetter 
 from MCTS_Hex import MCTS
 from utils import get_input
 import numpy as np
-from tune import tune
+import coloredlogs
+import tqdm
 
 MAX_TIME = 0.2
 CP = np.sqrt(4)
 ITERMAX = 10000
 
 def Tournament():
+    game = Game(7)
+    n1 = NNet(game)
+    n1.load_checkpoint('./TODO','TODO')
+    args1 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
+    mcts1 = MCTS(g, n1, args1)
+    n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
     bot_MCTS = MCTS(Cp=CP, itermax=ITERMAX, max_time=MAX_TIME)
     bot_AB = AlphaBeta(max_time=MAX_TIME)
-    bots = [bot_MCTS, bot_AB]
-    color = [HexBoard.RED, HexBoard.BLUE]
-    # Initialise the number of rounds and board size
-    print("Hex game: 7x7)")
-    size = 7
-    rounds = 10
-    print(rounds,"rounds")
-    print("MCTS vs. Alpha-Beta")
-    # Initialise ratings
-    r1 = Rating()
-    r2 = Rating()
-    print(r1, r2)
-    # For each round:
-    for round in range(rounds):
-        print("round:", round+1, end="")
-        # Switch starting player each round
-        turn = 0 if round % 2 == 0 else 1
-        if not turn:
-            print(" - MCTS starts       - ", end="")
-        else:
-            print(" - Alpha-Beta starts - ", end="")
-        # Setup board, depth and heuristic
-        board = HexBoard(size)
-        # While the game is not over
-        while(not board.is_game_over()):
-            # Make a move using corresponding bot
-            board = bots[turn].makeMove(board, color[turn])
-            # Switch turns
-            turn = int(not turn)
-        # Print board and winner after game ends
-        if board.check_win(HexBoard.RED):
-            print("MCTS wins!")
-        else:
-            print("Alpha-Beta wins!")
-        # Update ratings accordingly
-        if board.check_win(HexBoard.RED):
-            r1, r2 = rate_1vs1(r1, r2)
-        else:
-            r2, r1 = rate_1vs1(r2, r1)
-        # Print new ratings and clean up board
-        del board
-    print(r1, r2)
+    players = [bot_MCTS, bot_AB, n1p]
+    ratings = [Rating() for _ in players]
+    text = ["MCTS", "AB", "A0G"]
+    games = []
+    logs = []
+    for i in range(len(players)):
+        for j in range(i,len(players)):
+            games.append((players[i], players[j]))
+            logs.append((text[i], text[j]))
+
+    num = int(num / 2)
+    oneWon = 0
+    twoWon = 0
+    draws = 0
+    for i, game in enumerate(games):
+        for _ in tqdm(range(num), desc=f'{logs[i][0]} - {logs[i][1]}'):
+            gameResult = play(game[0], game[1], verbose=False)
+            if gameResult == 1:
+                oneWon += 1
+            elif gameResult == -1:
+                twoWon += 1 
+            else:
+                draws += 1
+
+def play(p1, p2, verbose):
+    players = [p1, None, p2]
+    curPlayer = 1
+    it = 0
+    while game.getGameEnded(board, curPlayer) == 0:
+        it += 1
+        action = players[curPlayer + 1](game.getCanonicalForm(board, curPlayer))
+        valids = game.getValidMoves(game.getCanonicalForm(board, curPlayer), 1)
+        if valids[action] == 0:
+            log.error(f'Action {action} is not valid!')
+            log.debug(f'valids = {valids}')
+        board, curPlayer = self.game.getNextState(board, curPlayer, action)
+    if verbose:
+        assert self.display
+        print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
+        self.display(board)
+    return curPlayer * self.game.getGameEnded(board, curPlayer)
 
 if __name__ == "__main__":
     print("Which part of the assignment would you like to see?")

@@ -62,20 +62,27 @@ class NNetWrapper(NeuralNet):
                 t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
 
     def predict(self, board):
-        """
-        board: np array with board
-        """
         # timing
         start = time.time()
-
         # preparing input
         board = board[np.newaxis, :, :]
-
         # run
         prob, v = self.sess.run([self.nnet.prob, self.nnet.v],
                                 feed_dict={self.nnet.input_boards: board, self.nnet.dropout: 0,
                                            self.nnet.isTraining: False})
+        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
+        return prob[0], v[0]
 
+    # Same as predict, but needed for Tournament
+    def makeMove(self, board):
+        # timing
+        start = time.time()
+        # preparing input
+        board = board[np.newaxis, :, :]
+        # run
+        prob, v = self.sess.run([self.nnet.prob, self.nnet.v],
+                                feed_dict={self.nnet.input_boards: board, self.nnet.dropout: 0,
+                                           self.nnet.isTraining: False})
         # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return prob[0], v[0]
 

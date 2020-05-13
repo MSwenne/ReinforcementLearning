@@ -44,11 +44,11 @@ class MCTS:
             for f in concurrent.futures.as_completed(results):
                 all_searched.append(f.result())
             winner = max(all_searched, key = itemgetter(0))[1]
-            return winner.getBoard()
+            return winner.getMove()
 
     def performMCTS(self, board, color, cp):
     
-        root = Node(board, color, None)
+        root = Node(board, None, color, None)
         it = 0
         curr_time = time.time()
         while it < self.itermax and time.time() - curr_time < self.max_time:
@@ -98,8 +98,9 @@ class MCTS:
         board = copy_board(curr.getBoard())
         color = curr.getColor()
         if(len(curr.getMoves()) != 0):
-            board.place(curr.ExpandRandomMove(), color)
-            child = Node(board, board.get_opposite_color(color), curr)
+            move = curr.ExpandRandomMove()
+            board.place(move, color)
+            child = Node(board, move, board.get_opposite_color(color), curr)
             curr.addChild(child)
             return child
         return curr
@@ -126,8 +127,9 @@ class MCTS:
         del root
 
 class Node:
-    def __init__(self, board, color, parent):
+    def __init__(self, board, move, color, parent):
         self.board = board
+        self.move = move
         self.moves = self.board.getMoveList(color)
         self.color = color
         self.state = (0,0) # (win, visit)
@@ -136,6 +138,9 @@ class Node:
 
     def getBoard(self):
         return self.board
+
+    def getMove(self):
+        return self.move
 
     def getMoves(self):
         return self.moves

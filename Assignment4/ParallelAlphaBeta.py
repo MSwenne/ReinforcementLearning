@@ -40,9 +40,8 @@ class AlphaBeta:
             # Increment depth
             self.depth += 1
         # Place the best_move
-        board.place(best_move, color)
-        return board
-    
+        return best_move
+
     def pre_alpha_beta(self, board, color):
         # Initialise the enemy, best_value and best_move
         best_move = 0
