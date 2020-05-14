@@ -20,3 +20,22 @@ class AverageMeter(object):
 class dotdict(dict):
     def __getattr__(self, name):
         return self[name]
+
+# Added for hex_skeleton
+from hex_skeleton import HexBoard
+import copy
+
+def get_input(message, valid, ending="\n"):
+    print(message, end=ending)
+    result = input()
+    while result not in valid:
+        print("Invalid value!",result,valid)
+        print(message, end=ending)
+        result = input()
+    return result
+
+
+def copy_board(board):
+    new_board = HexBoard(board.size)
+    new_board.set_board(board.board.copy(), bool(board.game_over))
+    return new_board

@@ -77,7 +77,7 @@ class MCTS:
 
     def selectPromising(self, root, cp, it):
         curr = root
-        while len(curr.getBoard().getMoveList(curr.getColor())) ==  len(curr.getChildren()):
+        while len(curr.getBoard().getMoveList()) ==  len(curr.getChildren()):
             if curr.getBoard().is_game_over():
                 return curr
             curr = self.findBestUCT(curr, cp)
@@ -116,7 +116,7 @@ class MCTS:
     def recursivePlayout(self, board, color):
         if board.is_game_over():
             return board.check_win(board.get_opposite_color(color)), board.get_opposite_color(color)
-        moves = board.getMoveList(color)
+        moves = board.getMoveList()
         move = moves[random.randint(0,len(moves)-1)]
         board.place(move, color)
         return self.recursivePlayout(board, board.get_opposite_color(color))
@@ -130,7 +130,7 @@ class Node:
     def __init__(self, board, move, color, parent):
         self.board = board
         self.move = move
-        self.moves = self.board.getMoveList(color)
+        self.moves = self.board.getMoveList()
         self.color = color
         self.state = (0,0) # (win, visit)
         self.parent = parent

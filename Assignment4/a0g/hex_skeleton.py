@@ -2,8 +2,8 @@ import numpy as np
 
 class HexBoard:
     BLUE = 1
-    RED = 2
-    EMPTY = 3
+    RED = -1
+    EMPTY = 0
     def __init__(self, board_size):
         self.board = {}
         self.size = board_size
@@ -78,6 +78,34 @@ class HexBoard:
                                         print("- ",end="")
                 print("|")
         print("     -----------------------")
+
+    # Added
+    # Places empty on coordinates
+    def unplace(self, coordinates):
+        if not (self.board[coordinates] == HexBoard.EMPTY):
+            self.board[coordinates] = HexBoard.EMPTY
+            self.game_over = False
+
+    # Returns all empty coordinates
+    def getMoveList(self):
+        # Initialise an empty list of empty coordinates
+        moves = []
+        for x in range(self.size):
+            for y in range(self.size):
+                # If the coordinates are empty...
+                if(self.is_empty((x,y))):
+                    # ... append the coordinates to the list
+                    moves.append((x,y))
+        # Return the list of empty coordinates
+        return moves
+
+    # Added
+    # Checks if two board states are equal (overwrites ==)
+    def __eq__(self, other): 
+        return len([(i,j) 
+                for i in range(self.size)
+                for j in range(self.size) 
+                if self.board[(i,j)] == other.board[(i,j)]]) == self.size * self.size
 
     # Gotten from HexGame, needed for makeMove of Alpha0General
     def getCanonicalForm(self, player):

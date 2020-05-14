@@ -73,19 +73,6 @@ class NNetWrapper(NeuralNet):
         # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return prob[0], v[0]
 
-    # Same as predict, but needed for Tournament
-    def makeMove(self, board):
-        # timing
-        start = time.time()
-        # preparing input
-        board = board[np.newaxis, :, :]
-        # run
-        prob, v = self.sess.run([self.nnet.prob, self.nnet.v],
-                                feed_dict={self.nnet.input_boards: board, self.nnet.dropout: 0,
-                                           self.nnet.isTraining: False})
-        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
-        return prob[0], v[0]
-
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)
         if not os.path.exists(folder):
