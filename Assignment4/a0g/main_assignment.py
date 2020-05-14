@@ -65,9 +65,9 @@ def Tournament():
     n2p = lambda x: np.argmax(mcts2.getActionProb(x, temp=0))
     bot_MCTS = MCTS(Cp=CP, itermax=ITERMAX, max_time=MAX_TIME)
     bot_AB = AlphaBeta(max_time=MAX_TIME)
-    players = [bot_MCTS, bot_AB]#, n1p, n2p]
+    players = [bot_MCTS, bot_AB, n1p, n2p]
     ratings = [Rating() for _ in players]
-    text = ['MCTS', 'AB']#, 'A0G1', 'A0G2']
+    text = ['MCTS', 'AB', 'A0G1', 'A0G2']
     games = []
     logs = []
     for i in range(len(players)):
