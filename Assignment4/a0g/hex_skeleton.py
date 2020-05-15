@@ -11,6 +11,13 @@ class HexBoard:
         for x in range(board_size):
             for y in range (board_size):
                 self.board[x,y] = HexBoard.EMPTY
+        self.pieces = [None]*self.size
+        for i in range(self.size):
+            self.pieces[i] = [0]*self.size
+
+    def set_board(self, board, game_over=False):
+        self.board = board
+        self.game_over = game_over
     def is_game_over(self):
         return self.game_over
     def is_empty(self, coordinates):
@@ -26,6 +33,11 @@ class HexBoard:
             self.board[coordinates] = color
             if self.check_win(HexBoard.RED) or self.check_win(HexBoard.BLUE):
                 self.game_over = True
+    def clear(self, coordinates):
+        if not (self.board[coordinates] == HexBoard.EMPTY):
+            self.board[coordinates] = HexBoard.EMPTY
+            if not (self.check_win(HexBoard.RED) or self.check_win(HexBoard.BLUE)):
+                self.game_over = False
     def get_opposite_color(self, current_color):
         if current_color == HexBoard.BLUE:
             return HexBoard.RED
@@ -43,6 +55,11 @@ class HexBoard:
     def border(self, color, move):
         (nx, ny) = move
         return (color == HexBoard.BLUE and nx == self.size-1) or (color == HexBoard.RED and ny == self.size-1)
+    def get_start_border(self, color):
+        if color == HexBoard.BLUE:
+            return [(0,i) for i in range(self.size)]
+        else:
+            return [(i,0) for i in range(self.size)]
     def traverse(self, color, move, visited):
         if not self.is_color(move, color) or (move in visited and visited[move]): return False
         if self.border(color, move): return True

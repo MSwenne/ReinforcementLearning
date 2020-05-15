@@ -50,7 +50,7 @@ class HexGame(Game):
             print('no valid moves')
             return np.array(valids)
         for x, y in legalMoves:
-            valids[self.n*y+x]=1
+            valids[self.n*x+y]=1
         return np.array(valids)
 
     def getGameEnded(self, board, player):

@@ -28,10 +28,11 @@ class HumanHexPlayer():
             input_a = input_move.split(" ")
             if len(input_a) == 2:
                 try:
-                    x,y = [int(i) for i in input_a]
+                    x, y = [int(i) for i in input_a]
                     if ((0 <= x) and (x < self.game.n) and (0 <= y) and (y < self.game.n)) or \
                             ((x == self.game.n) and (y == 0)):
                         a = self.game.n * x + y
+                        print(valid, a)
                         if valid[a]:
                             break
                 except ValueError:

@@ -29,7 +29,9 @@ from tqdm import tqdm
 import numpy as np
 import coloredlogs
 import logging
+import os
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 log = logging.getLogger(__name__)
 
 coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
@@ -65,9 +67,9 @@ def Tournament():
     n2p = lambda x: np.argmax(mcts2.getActionProb(x, temp=0))
     bot_MCTS = MCTS(Cp=CP, itermax=ITERMAX, max_time=MAX_TIME)
     bot_AB = AlphaBeta(max_time=MAX_TIME)
-    players = [bot_MCTS, bot_AB, n1p, n2p]
+    players = [bot_MCTS, n1p, n2p]
     ratings = [Rating() for _ in players]
-    text = ['MCTS', 'AB', 'A0G1', 'A0G2']
+    text = ['MCTS', 'A0G1', 'A0G2']
     games = []
     logs = []
     for i in range(len(players)):
@@ -111,16 +113,17 @@ def play(p1, text1, p2, text2, verbose=False):
     it = 0
     while not board.is_game_over():
         it += 1
-        if text[curPlayer + 1][0:1] == 'A0':
+        print(text[curPlayer + 1][0:2], text[curPlayer + 1][0:2] == 'A0')
+        if text[curPlayer + 1][0:2] == 'A0':
             action = players[curPlayer + 1](board.getCanonicalForm(curPlayer))
+            action = (int(action/board.size), action%board.size)
         else:
             action = players[curPlayer + 1].makeMove(board, curPlayer)
         valids = board.getMoveList()
-        if valids[action] == 0:
+        if action not in valids:
             log.error(f'Action {action} is not valid!')
             log.debug(f'valids = {valids}')
-        move = (int(action/board.size), action%board.size)
-        board.place(move, curPlayer)
+        board.place(action, curPlayer)
         curPlayer = -curPlayer
     if verbose:
         board.print()
