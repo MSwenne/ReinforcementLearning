@@ -11,10 +11,11 @@ class HexBoard:
         for x in range(board_size):
             for y in range (board_size):
                 self.board[x,y] = HexBoard.EMPTY
-        self.pieces = [None]*self.size
-        for i in range(self.size):
-            self.pieces[i] = [0]*self.size
 
+    def HexGameToBoard(self, board):
+        for x in range(self.size):
+            for y in range(self.size):
+                self.board[(x,y)] = board[x][y]
     def set_board(self, board, game_over=False):
         self.board = board
         self.game_over = game_over

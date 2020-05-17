@@ -34,8 +34,8 @@ class Board():
         (1 for white, -1 for black)"""
         moves = []  # stores the legal moves.
         # Get all the squares with pieces of the given color.
-        for y in range(self.n):
-            for x in range(self.n):
+        for x in range(self.n):
+            for y in range(self.n):
                 if self[x][y]==0:
                     moves.append((x,y))
         return moves

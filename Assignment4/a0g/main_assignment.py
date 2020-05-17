@@ -16,6 +16,7 @@
 from trueskill import Rating, quality_1vs1, rate_1vs1
 from hexGame.keras.NNet import NNetWrapper as NNet
 from hexGame.HexPlayers import HumanHexPlayer
+from hexGame.HexLogic import Board
 from hexGame.HexGame import HexGame
 import Arena
 from ParallelAlphaBeta import AlphaBeta
@@ -106,28 +107,29 @@ def Tournament():
         draws = 0
 
 def play(p1, text1, p2, text2, verbose=False):
-    board = HexBoard(7)
-    players = [p1, None, p2]
-    text = [text1, None, text2]
+    game = HexGame(7)
+    board = game.getInitBoard()
+    b = HexBoard(7)
+    players = [p2, None, p1]
+    text = [text2, None, text1]
     curPlayer = 1
     it = 0
-    while not board.is_game_over():
+    while game.getGameEnded(board, curPlayer) == 0:
         it += 1
-        print(text[curPlayer + 1][0:2], text[curPlayer + 1][0:2] == 'A0')
         if text[curPlayer + 1][0:2] == 'A0':
-            action = players[curPlayer + 1](board.getCanonicalForm(curPlayer))
-            action = (int(action/board.size), action%board.size)
+            action = players[curPlayer + 1](game.getCanonicalForm(board, curPlayer))
         else:
-            action = players[curPlayer + 1].makeMove(board, curPlayer)
-        valids = board.getMoveList()
-        if action not in valids:
+            b.HexGameToBoard(board)
+            action = players[curPlayer + 1].makeMove(b, curPlayer)
+            action = game.n*action[0]+action[1]
+        valids = game.getValidMoves(game.getCanonicalForm(board, curPlayer), 1)
+        if not valids[action]:
             log.error(f'Action {action} is not valid!')
             log.debug(f'valids = {valids}')
-        board.place(action, curPlayer)
-        curPlayer = -curPlayer
+        board, curPlayer = game.getNextState(board, curPlayer, action)
     if verbose:
         board.print()
-    return curPlayer if board.check_win(curPlayer) else -curPlayer
+    return curPlayer * game.getGameEnded(board, curPlayer)
 
 if __name__ == "__main__":
     print("Which part of the assignment would you like to see?")
