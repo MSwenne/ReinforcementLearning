@@ -1,5 +1,5 @@
 import numpy as np
-
+from hexGame.HexLogic import Board
 
 class RandomPlayer():
     def __init__(self, game):
@@ -12,14 +12,16 @@ class RandomPlayer():
             a = np.random.randint(self.game.getActionSize())
         return a
 
-
 class HumanHexPlayer():
     def __init__(self, game):
         self.game = game
 
     def play(self, board):
         # display(board)
-        valid = self.game.getValidMoves(board, 1)
+        b = Board(self.game.n)
+        b.pieces = np.copy(board)
+        valid = self.game.getValidMoves(self.game.getCanonicalForm(board, 1), 1)
+        # valid = self.game.getValidMoves(cannonicalBoard, 1)
         for i in range(len(valid)):
             if valid[i]:
                 print("[", int(i/self.game.n), int(i%self.game.n), end="] ")
@@ -32,7 +34,7 @@ class HumanHexPlayer():
                     if ((0 <= x) and (x < self.game.n) and (0 <= y) and (y < self.game.n)) or \
                             ((x == self.game.n) and (y == 0)):
                         a = self.game.n * x + y
-                        print(valid, a)
+                        print(valid, a, bool(valid[a]))
                         if valid[a]:
                             break
                 except ValueError:
