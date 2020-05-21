@@ -35,10 +35,11 @@ from utils import dotdict
 # Other libraries
 import matplotlib.pyplot as plt
 from operator import itemgetter
-from tqdm import tqdm
 import numpy as np
 import coloredlogs
 import logging
+import time
+import csv
 import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -53,7 +54,7 @@ ITERMAX = 10000
 def HumanPlay():
     game = HexGame(7)
     n1 = NNet(game)
-    # n1.load_checkpoint('./TODO','TODO')
+    n1.load_checkpoint('.\checkpoint','Model1.pth.tar')
     args1 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
     mcts1 = A0MCTS(game, n1, args1)
     n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
@@ -66,12 +67,12 @@ def Tournament():
     num = int(get_input("How many games?",[str(i) for i in range(1,1000)]))
     game = HexGame(7)
     n1 = NNet(game)
-    n1.load_checkpoint('.\checkpoint','best.pth.tar')
+    n1.load_checkpoint('.\checkpoint','Model1.pth.tar')
     args1 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
     mcts1 = A0MCTS(game, n1, args1)
     n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
     n2 = NNet(game)
-    # n1.load_checkpoint('./TODO','TODO')
+    n1.load_checkpoint('.\checkpoint','Model2.pth.tar')
     args2 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
     mcts2 = A0MCTS(game, n2, args2)
     n2p = lambda x: np.argmax(mcts2.getActionProb(x, temp=0))
@@ -92,8 +93,14 @@ def Tournament():
     oneWon = 0
     twoWon = 0
     draws = 0
-    scores = [[rating.mu for rating in ratings]]
+    
+    fields= [rating.mu for rating in ratings]
+    with open(r'./tournaments.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+    scores = [fields]
     for j in range(num):
+        now = time.time()
         print(f'round {j+1}:')
         for i, game in enumerate(games):
             if j % 2 == 0:
@@ -111,19 +118,23 @@ def Tournament():
                 log.info(f'{logs[i][1]} - {logs[i][0]}')
                 gameResult = play(game[1], logs[i][1], game[0], logs[i][0], verbose)
                 if gameResult == -1:
-                    ratings[index[i][0]], ratings[index[i][1]] = rate_1vs1(ratings[index[i][0]], ratings[index[i][1]])
+                    ratings[index[i][1]], ratings[index[i][0]] = rate_1vs1(ratings[index[i][1]], ratings[index[i][0]])
                     oneWon += 1
                 elif gameResult == 1:
-                    ratings[index[i][1]], ratings[index[i][0]] = rate_1vs1(ratings[index[i][1]], ratings[index[i][0]])
+                    ratings[index[i][0]], ratings[index[i][1]] = rate_1vs1(ratings[index[i][0]], ratings[index[i][1]])
                     twoWon += 1
                 else:
                     draws += 1
-            print(f'{logs[i][j%2]}: {oneWon}, {logs[i][(j%2)-1]}: {twoWon}, draw: {draws}')
+            print(f'{time.time()-now}\t{logs[i][j%2]}: {oneWon}, {logs[i][(j%2)-1]}: {twoWon}, draw: {draws}')
             print(ratings)
             oneWon = 0
             twoWon = 0
             draws = 0
-        scores.append([rating.mu for rating in ratings])
+        fields= [rating.mu for rating in ratings]
+        with open(r'./tournaments.csv', 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(fields)
+        scores.append(fields)
     plt.plot(scores)
     plt.legend(text)
     plt.show()
