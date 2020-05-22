@@ -54,7 +54,7 @@ ITERMAX = 10000
 def HumanPlay():
     game = HexGame(7)
     n1 = NNet(game)
-    n1.load_checkpoint('.\checkpoint','Model1.pth.tar')
+    n1.load_checkpoint('./checkpoint','Model1.pth.tar')
     args1 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
     mcts1 = A0MCTS(game, n1, args1)
     n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
@@ -67,12 +67,12 @@ def Tournament():
     num = int(get_input("How many games?",[str(i) for i in range(1,1000)]))
     game = HexGame(7)
     n1 = NNet(game)
-    n1.load_checkpoint('.\checkpoint','Model1.pth.tar')
+    n1.load_checkpoint('./checkpoint','Model1.pth.tar')
     args1 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
     mcts1 = A0MCTS(game, n1, args1)
     n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
     n2 = NNet(game)
-    n1.load_checkpoint('.\checkpoint','Model2.pth.tar')
+    n1.load_checkpoint('./checkpoint','Model2.pth.tar')
     args2 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
     mcts2 = A0MCTS(game, n2, args2)
     n2p = lambda x: np.argmax(mcts2.getActionProb(x, temp=0))
@@ -80,6 +80,13 @@ def Tournament():
     bot_AB = AlphaBeta(max_time=MAX_TIME)
     players = [bot_AB, bot_MCTS, n1p, n2p]
     ratings = [Rating() for _ in players]
+#     ratings = []
+# #  *********************** INITIAL VALUES *************************
+#     ratings.append(Rating(mu=24.30733422259068))
+#     ratings.append(Rating(mu=24.632270394539333))
+#     ratings.append(Rating(mu=24.769898667348023))
+#     ratings.append(Rating(mu=25.466144488107247))
+
     text = ['AB', 'MCTS', 'A0G1', 'A0G2']
     games = []
     logs = []
@@ -131,9 +138,13 @@ def Tournament():
             twoWon = 0
             draws = 0
         fields= [rating.mu for rating in ratings]
+        sigmas = [rating.sigma for rating in ratings]
         with open(r'./tournaments.csv', 'a') as f:
             writer = csv.writer(f)
             writer.writerow(fields)
+        with open(r'./sigmas.csv', 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(sigmas)
         scores.append(fields)
     plt.plot(scores)
     plt.legend(text)
